@@ -363,18 +363,6 @@ lmm_baseline <- lmer(
   trial_corr_rpd ~ trial_phase + (1 | id),
   data = df_grip
 )
-anova(lmm_baseline)
-```
-
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Sum Sq"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["NumDF"],"name":[3],"type":["int"],"align":["right"]},{"label":["DenDF"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"120.7409","2":"40.24696","3":"3","4":"2438.447","5":"370.476","6":"3.081842e-198","_rn_":"trial_phase"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
-
-``` r
 anova_table <- anova(lmm_baseline)
 knitr::kable(anova_table, caption = "ANOVA Results")
 ```
@@ -395,53 +383,60 @@ r2_nakagawa(lmm_baseline)
     ##      Marginal R2: 0.304
 
 ``` r
-emmeans(lmm_baseline, ~ trial_phase)
+# Compute estimated marginal means
+emm_result <- emmeans(lmm_baseline, ~ trial_phase)
+
+# Display the EMMs as a clean markdown table
+knitr::kable(emm_result, caption = "Estimated Marginal Means by Trial Phase")
 ```
 
-    ##  trial_phase            emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.0199 0.0132 1290 -0.00603   0.0459
-    ##  squeeze                0.3159 0.0124 1144  0.29157   0.3403
-    ##  baseline_post_squeeze -0.2182 0.0160 1589 -0.24952  -0.1869
-    ##  relax                 -0.1932 0.0124 1145 -0.21761  -0.1689
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## Confidence level used: 0.95
+| trial_phase           |     emmean |        SE |       df |   lower.CL |   upper.CL |
+|:----------------------|-----------:|----------:|---------:|-----------:|-----------:|
+| baseline_pre_squeeze  |  0.0199493 | 0.0132440 | 1289.834 | -0.0060330 |  0.0459315 |
+| squeeze               |  0.3159303 | 0.0124144 | 1143.714 |  0.2915727 |  0.3402878 |
+| baseline_post_squeeze | -0.2181855 | 0.0159738 | 1588.809 | -0.2495175 | -0.1868536 |
+| relax                 | -0.1932390 | 0.0124227 | 1145.341 | -0.2176129 | -0.1688651 |
+
+Estimated Marginal Means by Trial Phase
 
 ### Post Hoc
 
 ``` r
-contrast(emmeans(lmm_baseline, ~ trial_phase), "pairwise")
+# Compute pairwise contrasts
+emm_result <- emmeans(lmm_baseline, ~ trial_phase)
+pairwise_contrasts <- contrast(emm_result, "pairwise")
+
+# Display the contrasts
+knitr::kable(pairwise_contrasts, caption = "Pairwise Comparisons Between Trial Phases")
 ```
 
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze                -0.2960 0.0179 2409 -16.553
-    ##  baseline_pre_squeeze - baseline_post_squeeze   0.2381 0.0205 2483  11.615
-    ##  baseline_pre_squeeze - relax                   0.2132 0.0179 2409  11.919
-    ##  squeeze - baseline_post_squeeze                0.5341 0.0200 2488  26.727
-    ##  squeeze - relax                                0.5092 0.0173 2387  29.463
-    ##  baseline_post_squeeze - relax                 -0.0249 0.0200 2487  -1.248
-    ##  p.value
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.5962
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## P value adjustment: tukey method for comparing a family of 4 estimates
+| contrast | estimate | SE | df | t.ratio | p.value |
+|:---|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze - squeeze | -0.2959810 | 0.0178807 | 2408.773 | -16.553106 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | 0.2381348 | 0.0205029 | 2482.686 | 11.614668 | 0.0000000 |
+| baseline_pre_squeeze - relax | 0.2131883 | 0.0178866 | 2409.425 | 11.918866 | 0.0000000 |
+| squeeze - baseline_post_squeeze | 0.5341158 | 0.0199840 | 2488.239 | 26.727237 | 0.0000000 |
+| squeeze - relax | 0.5091693 | 0.0172819 | 2387.080 | 29.462648 | 0.0000000 |
+| baseline_post_squeeze - relax | -0.0249465 | 0.0199885 | 2487.062 | -1.248043 | 0.5962416 |
+
+Pairwise Comparisons Between Trial Phases
 
 ``` r
-confint(contrast(emmeans(lmm_baseline, ~ trial_phase), "pairwise"))
+# Compute and display confidence intervals for the contrasts
+pairwise_contrasts_ci <- confint(pairwise_contrasts)
+knitr::kable(pairwise_contrasts_ci, caption = "95% Confidence Intervals for Pairwise Comparisons")
 ```
 
-<div data-pagedtable="false">
+| contrast | estimate | SE | df | lower.CL | upper.CL |
+|:---|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze - squeeze | -0.2959810 | 0.0178807 | 2408.773 | -0.3419491 | -0.2500129 |
+| baseline_pre_squeeze - baseline_post_squeeze | 0.2381348 | 0.0205029 | 2482.686 | 0.1854264 | 0.2908432 |
+| baseline_pre_squeeze - relax | 0.2131883 | 0.0178866 | 2409.425 | 0.1672049 | 0.2591717 |
+| squeeze - baseline_post_squeeze | 0.5341158 | 0.0199840 | 2488.239 | 0.4827417 | 0.5854899 |
+| squeeze - relax | 0.5091693 | 0.0172819 | 2387.080 | 0.4647404 | 0.5535982 |
+| baseline_post_squeeze - relax | -0.0249465 | 0.0199885 | 2487.062 | -0.0763324 | 0.0264393 |
 
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["contrast"],"name":[1],"type":["chr"],"align":["left"]},{"label":["estimate"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["SE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["df"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["lower.CL"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["upper.CL"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"baseline_pre_squeeze - squeeze","2":"-0.29598100","3":"0.01788069","4":"2408.773","5":"-0.34194914","6":"-0.25001285","_rn_":"1"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"0.23813480","3":"0.02050294","4":"2482.686","5":"0.18542642","6":"0.29084318","_rn_":"2"},{"1":"baseline_pre_squeeze - relax","2":"0.21318829","3":"0.01788663","4":"2409.425","5":"0.16720490","6":"0.25917168","_rn_":"3"},{"1":"squeeze - baseline_post_squeeze","2":"0.53411580","3":"0.01998395","4":"2488.239","5":"0.48274169","6":"0.58548991","_rn_":"4"},{"1":"squeeze - relax","2":"0.50916928","3":"0.01728186","4":"2387.080","5":"0.46474036","6":"0.55359821","_rn_":"5"},{"1":"baseline_post_squeeze - relax","2":"-0.02494651","3":"0.01998851","4":"2487.062","5":"-0.07633237","6":"0.02643934","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
+95% Confidence Intervals for Pairwise Comparisons
 
 ``` r
 emmeans_result <- emmeans(lmm_baseline, ~ trial_phase)  
@@ -540,45 +535,51 @@ anova(lmm_gripstrength)
 </div>
 
 ``` r
-emtrends(lmm_gripstrength, ~ trial_phase, var = 'grip_strength.y', infer=c(TRUE, TRUE))
+knitr::kable(anova_table, caption = "ANOVA Results")
 ```
 
-    ##  trial_phase           grip_strength.y.trend       SE   df lower.CL  upper.CL
-    ##  baseline_pre_squeeze              -2.10e-03 0.000809 1668 -0.00369 -0.000518
-    ##  squeeze                            5.86e-03 0.000743 1516  0.00441  0.007320
-    ##  baseline_post_squeeze             -8.88e-05 0.001020 2061 -0.00209  0.001917
-    ##  relax                             -1.68e-03 0.000745 1532 -0.00314 -0.000220
-    ##  t.ratio p.value
-    ##   -2.602  0.0093
-    ##    7.890  <.0001
-    ##   -0.087  0.9309
-    ##   -2.257  0.0242
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## Confidence level used: 0.95
+|                 |    Sum Sq |   Mean Sq | NumDF | DenDF |  F value |   Pr(\>F) |
+|:----------------|----------:|----------:|------:|------:|---------:|----------:|
+| grip_strength.y | 0.3580207 | 0.3580207 |     1 |  2508 | 2.277853 | 0.1313594 |
+
+ANOVA Results
+
+``` r
+# Compute estimated marginal trends of grip_strength.y by trial phase
+trend_result <- emtrends(
+  lmm_gripstrength,
+  ~ trial_phase,
+  var = "grip_strength.y",
+  infer = c(TRUE, TRUE)
+)
+
+# Display as Markdown table
+knitr::kable(trend_result, caption = "Estimated Slopes of Grip Strength by Trial Phase")
+```
+
+| trial_phase | grip_strength.y.trend | SE | df | lower.CL | upper.CL | t.ratio | p.value |
+|:---|---:|---:|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze | -0.0021045 | 0.0008087 | 1668.160 | -0.0036907 | -0.0005183 | -2.6022198 | 0.0093443 |
+| squeeze | 0.0058629 | 0.0007431 | 1515.823 | 0.0044053 | 0.0073205 | 7.8897878 | 0.0000000 |
+| baseline_post_squeeze | -0.0000888 | 0.0010229 | 2060.868 | -0.0020948 | 0.0019173 | -0.0867637 | 0.9308678 |
+| relax | -0.0016818 | 0.0007452 | 1531.607 | -0.0031435 | -0.0002200 | -2.2567923 | 0.0241615 |
+
+Estimated Slopes of Grip Strength by Trial Phase
 
 ## Group differences
 
 ``` r
 # Result 2:
+# Ensure group is treated as factor
 df_grip$group.y <- as.factor(df_grip$group.y)
 
+# Fit model
 lmm_group <- lmer(
   trial_corr_rpd ~ trial_phase * group.y + (1 | id),
   data = df_grip
 )
-anova(lmm_group)
-```
 
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Sum Sq"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["NumDF"],"name":[3],"type":["int"],"align":["right"]},{"label":["DenDF"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"117.9422619","2":"39.3140873","3":"3","4":"2431.1943","5":"364.508410","6":"1.817443e-195","_rn_":"trial_phase"},{"1":"0.2747287","2":"0.1373643","3":"2","4":"142.8635","5":"1.273601","6":"2.829797e-01","_rn_":"group.y"},{"1":"2.5042515","2":"0.4173752","3":"6","4":"2430.4815","5":"3.869778","6":"7.548940e-04","_rn_":"trial_phase:group.y"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
-
-``` r
+# Run and display ANOVA table
 anova_table <- anova(lmm_group)
 knitr::kable(anova_table, caption = "ANOVA Results")
 ```
@@ -592,44 +593,59 @@ knitr::kable(anova_table, caption = "ANOVA Results")
 ANOVA Results
 
 ``` r
-r2_nakagawa(lmm_group)
+# Compute and display marginal and conditional R²
+r2_values <- r2_nakagawa(lmm_group)
+knitr::kable(r2_values, caption = "Nakagawa R² for Mixed Model")
 ```
 
-    ## # R2 for Mixed Models
-    ## 
-    ##   Conditional R2: 0.315
-    ##      Marginal R2: 0.310
+<table class="kable_wrapper">
+<caption>
+Nakagawa R² for Mixed Model
+</caption>
+<tbody>
+<tr>
+<td>
+
+|                |         x |
+|:---------------|----------:|
+| Conditional R2 | 0.3150516 |
+
+</td>
+<td>
+
+|             |         x |
+|:------------|----------:|
+| Marginal R2 | 0.3104566 |
+
+</td>
+</tr>
+</tbody>
+</table>
 
 ``` r
-emmeans(lmm_group, ~ group.y | trial_phase)
+# Compute estimated marginal means of group within each trial phase
+emm_group_trial <- emmeans(lmm_group, ~ group.y | trial_phase)
+
+# Display as markdown table
+knitr::kable(emm_group_trial, caption = "Estimated Marginal Means: Group within Trial Phase")
 ```
 
-    ## trial_phase = baseline_pre_squeeze:
-    ##  group.y   emmean     SE   df  lower.CL upper.CL
-    ##  ASD      0.04326 0.0225 1305 -0.000841   0.0874
-    ##  CON      0.01036 0.0217 1291 -0.032226   0.0529
-    ##  MHC      0.00421 0.0248 1198 -0.044346   0.0528
-    ## 
-    ## trial_phase = squeeze:
-    ##  group.y   emmean     SE   df  lower.CL upper.CL
-    ##  ASD      0.27527 0.0210 1162  0.234093   0.3165
-    ##  CON      0.38139 0.0205 1153  0.341145   0.4216
-    ##  MHC      0.28218 0.0231 1042  0.236893   0.3275
-    ## 
-    ## trial_phase = baseline_post_squeeze:
-    ##  group.y   emmean     SE   df  lower.CL upper.CL
-    ##  ASD     -0.22508 0.0256 1581 -0.275281  -0.1749
-    ##  CON     -0.19134 0.0274 1650 -0.245160  -0.1375
-    ##  MHC     -0.24124 0.0303 1452 -0.300710  -0.1818
-    ## 
-    ## trial_phase = relax:
-    ##  group.y   emmean     SE   df  lower.CL upper.CL
-    ##  ASD     -0.16057 0.0209 1158 -0.201676  -0.1195
-    ##  CON     -0.22969 0.0205 1157 -0.270006  -0.1894
-    ##  MHC     -0.18702 0.0231 1047 -0.232414  -0.1416
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## Confidence level used: 0.95
+| group.y | trial_phase | emmean | SE | df | lower.CL | upper.CL |
+|:---|:---|---:|---:|---:|---:|---:|
+| ASD | baseline_pre_squeeze | 0.0432599 | 0.0224800 | 1304.841 | -0.0008409 | 0.0873608 |
+| CON | baseline_pre_squeeze | 0.0103552 | 0.0217051 | 1290.571 | -0.0322261 | 0.0529364 |
+| MHC | baseline_pre_squeeze | 0.0042122 | 0.0247502 | 1197.652 | -0.0443463 | 0.0527707 |
+| ASD | squeeze | 0.2752727 | 0.0209885 | 1162.438 | 0.2340931 | 0.3164522 |
+| CON | squeeze | 0.3813863 | 0.0205098 | 1152.652 | 0.3411455 | 0.4216270 |
+| MHC | squeeze | 0.2821764 | 0.0230776 | 1042.212 | 0.2368926 | 0.3274602 |
+| ASD | baseline_post_squeeze | -0.2250791 | 0.0255942 | 1581.449 | -0.2752812 | -0.1748770 |
+| CON | baseline_post_squeeze | -0.1913400 | 0.0274394 | 1650.163 | -0.2451597 | -0.1375202 |
+| MHC | baseline_post_squeeze | -0.2412378 | 0.0303180 | 1451.772 | -0.3007095 | -0.1817660 |
+| ASD | relax | -0.1605750 | 0.0209482 | 1157.506 | -0.2016756 | -0.1194743 |
+| CON | relax | -0.2296909 | 0.0205476 | 1157.299 | -0.2700057 | -0.1893761 |
+| MHC | relax | -0.1870247 | 0.0231315 | 1047.228 | -0.2324141 | -0.1416353 |
+
+Estimated Marginal Means: Group within Trial Phase
 
 ### Post Hoc
 
@@ -702,48 +718,53 @@ confint(contrast(emmeans(lmm_group, ~ trial_phase | group.y), "pairwise"))
 </div>
 
 ``` r
-# Pairwise group comparisons within each trial_phase
-contrast(emmeans(lmm_group, ~ group.y | trial_phase), "pairwise")
+# Compute estimated marginal means of group within each trial phase
+emm_group_trial <- emmeans(lmm_group, ~ group.y | trial_phase)
+
+# Compute pairwise group comparisons within each trial phase
+group_comparisons <- contrast(emm_group_trial, "pairwise")
+knitr::kable(group_comparisons, caption = "Pairwise Group Comparisons within Trial Phase")
 ```
 
-    ## trial_phase = baseline_pre_squeeze:
-    ##  contrast  estimate     SE   df t.ratio p.value
-    ##  ASD - CON  0.03290 0.0312 1298   1.053  0.5436
-    ##  ASD - MHC  0.03905 0.0334 1245   1.168  0.4727
-    ##  CON - MHC  0.00614 0.0329 1237   0.187  0.9810
-    ## 
-    ## trial_phase = squeeze:
-    ##  contrast  estimate     SE   df t.ratio p.value
-    ##  ASD - CON -0.10611 0.0293 1158  -3.616  0.0009
-    ##  ASD - MHC -0.00690 0.0312 1095  -0.221  0.9734
-    ##  CON - MHC  0.09921 0.0309 1089   3.213  0.0039
-    ## 
-    ## trial_phase = baseline_post_squeeze:
-    ##  contrast  estimate     SE   df t.ratio p.value
-    ##  ASD - CON -0.03374 0.0375 1618  -0.899  0.6409
-    ##  ASD - MHC  0.01616 0.0397 1505   0.407  0.9126
-    ##  CON - MHC  0.04990 0.0409 1539   1.220  0.4413
-    ## 
-    ## trial_phase = relax:
-    ##  contrast  estimate     SE   df t.ratio p.value
-    ##  ASD - CON  0.06912 0.0293 1157   2.355  0.0489
-    ##  ASD - MHC  0.02645 0.0312 1095   0.848  0.6735
-    ##  CON - MHC -0.04267 0.0309 1094  -1.379  0.3523
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## P value adjustment: tukey method for comparing a family of 3 estimates
+| contrast | trial_phase | estimate | SE | df | t.ratio | p.value |
+|:---|:---|---:|---:|---:|---:|---:|
+| ASD - CON | baseline_pre_squeeze | 0.0329048 | 0.0312484 | 1297.936 | 1.0530054 | 0.5435548 |
+| ASD - MHC | baseline_pre_squeeze | 0.0390478 | 0.0334353 | 1244.972 | 1.1678600 | 0.4726627 |
+| CON - MHC | baseline_pre_squeeze | 0.0061430 | 0.0329194 | 1237.197 | 0.1866080 | 0.9809861 |
+| ASD - CON | squeeze | -0.1061136 | 0.0293457 | 1157.646 | -3.6159891 | 0.0009100 |
+| ASD - MHC | squeeze | -0.0069038 | 0.0311944 | 1094.847 | -0.2213148 | 0.9733605 |
+| CON - MHC | squeeze | 0.0992098 | 0.0308744 | 1089.436 | 3.2133401 | 0.0038586 |
+| ASD - CON | baseline_post_squeeze | -0.0337392 | 0.0375231 | 1617.964 | -0.8991569 | 0.6409118 |
+| ASD - MHC | baseline_post_squeeze | 0.0161586 | 0.0396767 | 1504.778 | 0.4072572 | 0.9126480 |
+| CON - MHC | baseline_post_squeeze | 0.0498978 | 0.0408914 | 1538.947 | 1.2202532 | 0.4413275 |
+| ASD - CON | relax | 0.0691160 | 0.0293433 | 1157.404 | 2.3554236 | 0.0489136 |
+| ASD - MHC | relax | 0.0264497 | 0.0312073 | 1095.415 | 0.8475501 | 0.6734759 |
+| CON - MHC | relax | -0.0426662 | 0.0309398 | 1094.283 | -1.3790072 | 0.3522786 |
+
+Pairwise Group Comparisons within Trial Phase
 
 ``` r
-confint(contrast(emmeans(lmm_group, ~ group.y | trial_phase), "pairwise"))
+# Confidence intervals for the pairwise comparisons
+group_comparisons_ci <- confint(group_comparisons)
+knitr::kable(group_comparisons_ci, caption = "95% Confidence Intervals for Pairwise Group Comparisons")
 ```
 
-<div data-pagedtable="false">
+| contrast | trial_phase | estimate | SE | df | lower.CL | upper.CL |
+|:---|:---|---:|---:|---:|---:|---:|
+| ASD - CON | baseline_pre_squeeze | 0.0329048 | 0.0312484 | 1297.936 | -0.0404165 | 0.1062260 |
+| ASD - MHC | baseline_pre_squeeze | 0.0390478 | 0.0334353 | 1244.972 | -0.0394086 | 0.1175041 |
+| CON - MHC | baseline_pre_squeeze | 0.0061430 | 0.0329194 | 1237.197 | -0.0711032 | 0.0833893 |
+| ASD - CON | squeeze | -0.1061136 | 0.0293457 | 1157.646 | -0.1749798 | -0.0372474 |
+| ASD - MHC | squeeze | -0.0069038 | 0.0311944 | 1094.847 | -0.0801139 | 0.0663063 |
+| CON - MHC | squeeze | 0.0992098 | 0.0308744 | 1089.436 | 0.0267503 | 0.1716693 |
+| ASD - CON | baseline_post_squeeze | -0.0337392 | 0.0375231 | 1617.964 | -0.1217633 | 0.0542849 |
+| ASD - MHC | baseline_post_squeeze | 0.0161586 | 0.0396767 | 1504.778 | -0.0769240 | 0.1092413 |
+| CON - MHC | baseline_post_squeeze | 0.0498978 | 0.0408914 | 1538.947 | -0.0460323 | 0.1458279 |
+| ASD - CON | relax | 0.0691160 | 0.0293433 | 1157.404 | 0.0002552 | 0.1379767 |
+| ASD - MHC | relax | 0.0264497 | 0.0312073 | 1095.415 | -0.0467905 | 0.0996899 |
+| CON - MHC | relax | -0.0426662 | 0.0309398 | 1094.283 | -0.1152789 | 0.0299464 |
 
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["contrast"],"name":[1],"type":["fct"],"align":["left"]},{"label":["trial_phase"],"name":[2],"type":["fct"],"align":["left"]},{"label":["estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["SE"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["df"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["lower.CL"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["upper.CL"],"name":[7],"type":["dbl"],"align":["right"]}],"data":[{"1":"ASD - CON","2":"baseline_pre_squeeze","3":"0.032904751","4":"0.03124842","5":"1297.936","6":"-0.0404164549","7":"0.10622596","_rn_":"1"},{"1":"ASD - MHC","2":"baseline_pre_squeeze","3":"0.039047767","4":"0.03343532","5":"1244.972","6":"-0.0394086125","7":"0.11750415","_rn_":"2"},{"1":"CON - MHC","2":"baseline_pre_squeeze","3":"0.006143015","4":"0.03291935","5":"1237.197","6":"-0.0711032342","7":"0.08338927","_rn_":"3"},{"1":"ASD - CON","2":"squeeze","3":"-0.106113616","4":"0.02934567","5":"1157.646","6":"-0.1749798201","7":"-0.03724741","_rn_":"4"},{"1":"ASD - MHC","2":"squeeze","3":"-0.006903782","4":"0.03119439","5":"1094.847","6":"-0.0801138540","7":"0.06630629","_rn_":"5"},{"1":"CON - MHC","2":"squeeze","3":"0.099209834","4":"0.03087436","5":"1089.436","6":"0.0267503482","7":"0.17166932","_rn_":"6"},{"1":"ASD - CON","2":"baseline_post_squeeze","3":"-0.033739170","4":"0.03752312","5":"1617.964","6":"-0.1217632834","7":"0.05428494","_rn_":"7"},{"1":"ASD - MHC","2":"baseline_post_squeeze","3":"0.016158635","4":"0.03967673","5":"1504.778","6":"-0.0769240211","7":"0.10924129","_rn_":"8"},{"1":"CON - MHC","2":"baseline_post_squeeze","3":"0.049897805","4":"0.04089135","5":"1538.947","6":"-0.0460322805","7":"0.14582789","_rn_":"9"},{"1":"ASD - CON","2":"relax","3":"0.069115962","4":"0.02934333","5":"1157.404","6":"0.0002552369","7":"0.13797669","_rn_":"10"},{"1":"ASD - MHC","2":"relax","3":"0.026449720","4":"0.03120727","5":"1095.415","6":"-0.0467905058","7":"0.09968995","_rn_":"11"},{"1":"CON - MHC","2":"relax","3":"-0.042666241","4":"0.03093982","5":"1094.283","6":"-0.1152789129","7":"0.02994643","_rn_":"12"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
+95% Confidence Intervals for Pairwise Group Comparisons
 
 ``` r
 # Compute estimated marginal means
@@ -833,26 +854,18 @@ ggplot(emm_data, aes(x = group.y, y = emmean, color = group.y)) +
 
 ``` r
 # Result 3:
+# Ensure manipulation_trial is a factor
 df_grip$manipulation_trial <- as.factor(df_grip$manipulation_trial)
 
+# Fit mixed-effects model
 lmm_trials <- lmer(
   trial_corr_rpd ~ manipulation_trial * trial_phase + (1 | id),
   data = df_grip
 )
-anova(lmm_trials)
-```
 
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Sum Sq"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["NumDF"],"name":[3],"type":["int"],"align":["right"]},{"label":["DenDF"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"8.313045","2":"2.078261","3":"4","4":"2398.186","5":"20.402571","6":"1.515171e-16","_rn_":"manipulation_trial"},{"1":"119.862174","2":"39.954058","3":"3","4":"2418.510","5":"392.234370","6":"1.399885e-207","_rn_":"trial_phase"},{"1":"6.273156","2":"0.522763","3":"12","4":"2392.232","5":"5.132035","6":"1.525822e-08","_rn_":"manipulation_trial:trial_phase"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
-
-``` r
+# Run and display ANOVA table
 anova_table <- anova(lmm_trials)
-knitr::kable(anova_table, caption = "ANOVA Results")
+knitr::kable(anova_table, caption = "ANOVA Results for Manipulation Trial × Trial Phase")
 ```
 
 |  | Sum Sq | Mean Sq | NumDF | DenDF | F value | Pr(\>F) |
@@ -861,118 +874,124 @@ knitr::kable(anova_table, caption = "ANOVA Results")
 | trial_phase | 119.862174 | 39.954058 | 3 | 2418.510 | 392.234370 | 0 |
 | manipulation_trial:trial_phase | 6.273156 | 0.522763 | 12 | 2392.232 | 5.132035 | 0 |
 
-ANOVA Results
+ANOVA Results for Manipulation Trial × Trial Phase
 
 ``` r
-r2_nakagawa(lmm_trials) 
+# Compute and display marginal/conditional R²
+r2_trials <- r2_nakagawa(lmm_trials)
+knitr::kable(r2_trials, caption = "Nakagawa R² for Manipulation Trial Model")
 ```
 
-    ## # R2 for Mixed Models
-    ## 
-    ##   Conditional R2: 0.354
-    ##      Marginal R2: 0.347
+<table class="kable_wrapper">
+<caption>
+Nakagawa R² for Manipulation Trial Model
+</caption>
+<tbody>
+<tr>
+<td>
+
+|                |         x |
+|:---------------|----------:|
+| Conditional R2 | 0.3541884 |
+
+</td>
+<td>
+
+|             |         x |
+|:------------|----------:|
+| Marginal R2 | 0.3472014 |
+
+</td>
+</tr>
+</tbody>
+</table>
 
 ### Post Hoc
 
 ``` r
-# Compare trial phases within each manipulation trial (1 to 5)
-contrast(emmeans(lmm_trials, ~ trial_phase | manipulation_trial), "pairwise")
+# Compute estimated marginal means of trial_phase within each manipulation trial
+emm_phase_within_trial <- emmeans(lmm_trials, ~ trial_phase | manipulation_trial)
+
+# Compute pairwise comparisons
+phase_comparisons <- contrast(emm_phase_within_trial, "pairwise")
+knitr::kable(phase_comparisons, caption = "Pairwise Comparisons: Trial Phase within Manipulation Trial")
 ```
 
-    ## manipulation_trial = 1:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze                -0.2120 0.0391 2388  -5.427
-    ##  baseline_pre_squeeze - baseline_post_squeeze   0.0510 0.0460 2434   1.108
-    ##  baseline_pre_squeeze - relax                   0.1527 0.0390 2389   3.917
-    ##  squeeze - baseline_post_squeeze                0.2630 0.0447 2430   5.883
-    ##  squeeze - relax                                0.3647 0.0374 2370   9.746
-    ##  baseline_post_squeeze - relax                  0.1017 0.0446 2431   2.278
-    ##  p.value
-    ##   <.0001
-    ##   0.6843
-    ##   0.0005
-    ##   <.0001
-    ##   <.0001
-    ##   0.1034
-    ## 
-    ## manipulation_trial = 2:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze                -0.3569 0.0383 2380  -9.328
-    ##  baseline_pre_squeeze - baseline_post_squeeze   0.3114 0.0428 2415   7.277
-    ##  baseline_pre_squeeze - relax                   0.2068 0.0383 2380   5.404
-    ##  squeeze - baseline_post_squeeze                0.6683 0.0420 2414  15.918
-    ##  squeeze - relax                                0.5637 0.0374 2370  15.091
-    ##  baseline_post_squeeze - relax                 -0.1046 0.0420 2414  -2.491
-    ##  p.value
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.0615
-    ## 
-    ## manipulation_trial = 3:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze                -0.3590 0.0385 2383  -9.325
-    ##  baseline_pre_squeeze - baseline_post_squeeze   0.2519 0.0437 2424   5.767
-    ##  baseline_pre_squeeze - relax                   0.1963 0.0386 2384   5.089
-    ##  squeeze - baseline_post_squeeze                0.6109 0.0427 2419  14.314
-    ##  squeeze - relax                                0.5553 0.0374 2371  14.839
-    ##  baseline_post_squeeze - relax                 -0.0556 0.0427 2418  -1.302
-    ##  p.value
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.5618
-    ## 
-    ## manipulation_trial = 4:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze                -0.3232 0.0386 2384  -8.376
-    ##  baseline_pre_squeeze - baseline_post_squeeze   0.2828 0.0437 2421   6.465
-    ##  baseline_pre_squeeze - relax                   0.2183 0.0387 2384   5.639
-    ##  squeeze - baseline_post_squeeze                0.6060 0.0427 2419  14.199
-    ##  squeeze - relax                                0.5414 0.0375 2371  14.443
-    ##  baseline_post_squeeze - relax                 -0.0646 0.0428 2419  -1.509
-    ##  p.value
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.4321
-    ## 
-    ## manipulation_trial = 5:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze                -0.2286 0.0392 2389  -5.827
-    ##  baseline_pre_squeeze - baseline_post_squeeze   0.2792 0.0460 2434   6.070
-    ##  baseline_pre_squeeze - relax                   0.2899 0.0392 2390   7.401
-    ##  squeeze - baseline_post_squeeze                0.5078 0.0445 2431  11.405
-    ##  squeeze - relax                                0.5185 0.0374 2370  13.855
-    ##  baseline_post_squeeze - relax                  0.0107 0.0445 2430   0.240
-    ##  p.value
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.9951
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## P value adjustment: tukey method for comparing a family of 4 estimates
+| contrast | manipulation_trial | estimate | SE | df | t.ratio | p.value |
+|:---|:---|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze - squeeze | 1 | -0.2119543 | 0.0390553 | 2387.772 | -5.4270321 | 0.0000004 |
+| baseline_pre_squeeze - baseline_post_squeeze | 1 | 0.0510154 | 0.0460228 | 2433.853 | 1.1084819 | 0.6843377 |
+| baseline_pre_squeeze - relax | 1 | 0.1527410 | 0.0389943 | 2388.517 | 3.9170093 | 0.0005339 |
+| squeeze - baseline_post_squeeze | 1 | 0.2629697 | 0.0447013 | 2430.215 | 5.8828255 | 0.0000000 |
+| squeeze - relax | 1 | 0.3646953 | 0.0374198 | 2370.503 | 9.7460479 | 0.0000000 |
+| baseline_post_squeeze - relax | 1 | 0.1017256 | 0.0446480 | 2430.784 | 2.2783900 | 0.1033502 |
+| baseline_pre_squeeze - squeeze | 2 | -0.3569369 | 0.0382662 | 2380.407 | -9.3277459 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | 2 | 0.3113751 | 0.0427915 | 2415.428 | 7.2765609 | 0.0000000 |
+| baseline_pre_squeeze - relax | 2 | 0.2067875 | 0.0382662 | 2380.407 | 5.4039286 | 0.0000004 |
+| squeeze - baseline_post_squeeze | 2 | 0.6683120 | 0.0419838 | 2413.905 | 15.9183301 | 0.0000000 |
+| squeeze - relax | 2 | 0.5637245 | 0.0373548 | 2369.698 | 15.0910931 | 0.0000000 |
+| baseline_post_squeeze - relax | 2 | -0.1045875 | 0.0419838 | 2413.905 | -2.4911399 | 0.0615292 |
+| baseline_pre_squeeze - squeeze | 3 | -0.3590125 | 0.0384988 | 2382.876 | -9.3252861 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | 3 | 0.2518950 | 0.0436824 | 2423.715 | 5.7665140 | 0.0000001 |
+| baseline_pre_squeeze - relax | 3 | 0.1962570 | 0.0385621 | 2383.760 | 5.0893765 | 0.0000023 |
+| squeeze - baseline_post_squeeze | 3 | 0.6109075 | 0.0426799 | 2418.865 | 14.3137185 | 0.0000000 |
+| squeeze - relax | 3 | 0.5552695 | 0.0374198 | 2370.518 | 14.8389163 | 0.0000000 |
+| baseline_post_squeeze - relax | 3 | -0.0556380 | 0.0427356 | 2418.221 | -1.3019138 | 0.5617637 |
+| baseline_pre_squeeze - squeeze | 4 | -0.3231519 | 0.0385785 | 2383.889 | -8.3764781 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | 4 | 0.2828441 | 0.0437491 | 2421.171 | 6.4651416 | 0.0000000 |
+| baseline_pre_squeeze - relax | 4 | 0.2182647 | 0.0387040 | 2383.923 | 5.6393279 | 0.0000001 |
+| squeeze - baseline_post_squeeze | 4 | 0.6059960 | 0.0426798 | 2418.788 | 14.1986472 | 0.0000000 |
+| squeeze - relax | 4 | 0.5414166 | 0.0374856 | 2371.329 | 14.4433107 | 0.0000000 |
+| baseline_post_squeeze - relax | 4 | -0.0645794 | 0.0427939 | 2419.112 | -1.5090787 | 0.4321340 |
+| baseline_pre_squeeze - squeeze | 5 | -0.2285710 | 0.0392281 | 2389.119 | -5.8267084 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | 5 | 0.2792011 | 0.0459936 | 2434.289 | 6.0704323 | 0.0000000 |
+| baseline_pre_squeeze - relax | 5 | 0.2898838 | 0.0391674 | 2389.864 | 7.4011445 | 0.0000000 |
+| squeeze - baseline_post_squeeze | 5 | 0.5077721 | 0.0445210 | 2430.963 | 11.4052167 | 0.0000000 |
+| squeeze - relax | 5 | 0.5184548 | 0.0374198 | 2370.503 | 13.8550880 | 0.0000000 |
+| baseline_post_squeeze - relax | 5 | 0.0106827 | 0.0444654 | 2429.886 | 0.2402471 | 0.9951244 |
+
+Pairwise Comparisons: Trial Phase within Manipulation Trial
 
 ``` r
-confint(contrast(emmeans(lmm_trials, ~ trial_phase | manipulation_trial), "pairwise"))
+# Compute and display confidence intervals
+phase_comparisons_ci <- confint(phase_comparisons)
+knitr::kable(phase_comparisons_ci, caption = "95% CIs for Trial Phase Comparisons within Manipulation Trial")
 ```
 
-<div data-pagedtable="false">
+| contrast | manipulation_trial | estimate | SE | df | lower.CL | upper.CL |
+|:---|:---|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze - squeeze | 1 | -0.2119543 | 0.0390553 | 2387.772 | -0.3123593 | -0.1115494 |
+| baseline_pre_squeeze - baseline_post_squeeze | 1 | 0.0510154 | 0.0460228 | 2433.853 | -0.0673003 | 0.1693311 |
+| baseline_pre_squeeze - relax | 1 | 0.1527410 | 0.0389943 | 2388.517 | 0.0524929 | 0.2529891 |
+| squeeze - baseline_post_squeeze | 1 | 0.2629697 | 0.0447013 | 2430.215 | 0.1480513 | 0.3778882 |
+| squeeze - relax | 1 | 0.3646953 | 0.0374198 | 2370.503 | 0.2684944 | 0.4608962 |
+| baseline_post_squeeze - relax | 1 | 0.1017256 | 0.0446480 | 2430.784 | -0.0130559 | 0.2165071 |
+| baseline_pre_squeeze - squeeze | 2 | -0.3569369 | 0.0382662 | 2380.407 | -0.4553134 | -0.2585605 |
+| baseline_pre_squeeze - baseline_post_squeeze | 2 | 0.3113751 | 0.0427915 | 2415.428 | 0.2013657 | 0.4213844 |
+| baseline_pre_squeeze - relax | 2 | 0.2067875 | 0.0382662 | 2380.407 | 0.1084111 | 0.3051640 |
+| squeeze - baseline_post_squeeze | 2 | 0.6683120 | 0.0419838 | 2413.905 | 0.5603791 | 0.7762449 |
+| squeeze - relax | 2 | 0.5637245 | 0.0373548 | 2369.698 | 0.4676907 | 0.6597582 |
+| baseline_post_squeeze - relax | 2 | -0.1045875 | 0.0419838 | 2413.905 | -0.2125204 | 0.0033454 |
+| baseline_pre_squeeze - squeeze | 3 | -0.3590125 | 0.0384988 | 2382.876 | -0.4579870 | -0.2600380 |
+| baseline_pre_squeeze - baseline_post_squeeze | 3 | 0.2518950 | 0.0436824 | 2423.715 | 0.1395957 | 0.3641943 |
+| baseline_pre_squeeze - relax | 3 | 0.1962570 | 0.0385621 | 2383.760 | 0.0971198 | 0.2953941 |
+| squeeze - baseline_post_squeeze | 3 | 0.6109075 | 0.0426799 | 2418.865 | 0.5011854 | 0.7206297 |
+| squeeze - relax | 3 | 0.5552695 | 0.0374198 | 2370.518 | 0.4590686 | 0.6514704 |
+| baseline_post_squeeze - relax | 3 | -0.0556380 | 0.0427356 | 2418.221 | -0.1655035 | 0.0542274 |
+| baseline_pre_squeeze - squeeze | 4 | -0.3231519 | 0.0385785 | 2383.889 | -0.4223312 | -0.2239726 |
+| baseline_pre_squeeze - baseline_post_squeeze | 4 | 0.2828441 | 0.0437491 | 2421.171 | 0.1703732 | 0.3953150 |
+| baseline_pre_squeeze - relax | 4 | 0.2182647 | 0.0387040 | 2383.923 | 0.1187627 | 0.3177668 |
+| squeeze - baseline_post_squeeze | 4 | 0.6059960 | 0.0426798 | 2418.788 | 0.4962739 | 0.7157181 |
+| squeeze - relax | 4 | 0.5414166 | 0.0374856 | 2371.329 | 0.4450465 | 0.6377867 |
+| baseline_post_squeeze - relax | 4 | -0.0645794 | 0.0427939 | 2419.112 | -0.1745947 | 0.0454360 |
+| baseline_pre_squeeze - squeeze | 5 | -0.2285710 | 0.0392281 | 2389.119 | -0.3294203 | -0.1277217 |
+| baseline_pre_squeeze - baseline_post_squeeze | 5 | 0.2792011 | 0.0459936 | 2434.289 | 0.1609604 | 0.3974418 |
+| baseline_pre_squeeze - relax | 5 | 0.2898838 | 0.0391674 | 2389.864 | 0.1891906 | 0.3905770 |
+| squeeze - baseline_post_squeeze | 5 | 0.5077721 | 0.0445210 | 2430.963 | 0.3933170 | 0.6222272 |
+| squeeze - relax | 5 | 0.5184548 | 0.0374198 | 2370.503 | 0.4222539 | 0.6146557 |
+| baseline_post_squeeze - relax | 5 | 0.0106827 | 0.0444654 | 2429.886 | -0.1036295 | 0.1249949 |
 
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["contrast"],"name":[1],"type":["fct"],"align":["left"]},{"label":["manipulation_trial"],"name":[2],"type":["fct"],"align":["left"]},{"label":["estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["SE"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["df"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["lower.CL"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["upper.CL"],"name":[7],"type":["dbl"],"align":["right"]}],"data":[{"1":"baseline_pre_squeeze - squeeze","2":"1","3":"-0.21195431","4":"0.03905529","5":"2387.772","6":"-0.31235927","7":"-0.111549351","_rn_":"1"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"1","3":"0.05101541","4":"0.04602277","5":"2433.853","6":"-0.06730027","7":"0.169331090","_rn_":"2"},{"1":"baseline_pre_squeeze - relax","2":"1","3":"0.15274097","4":"0.03899428","5":"2388.517","6":"0.05249287","7":"0.252989062","_rn_":"3"},{"1":"squeeze - baseline_post_squeeze","2":"1","3":"0.26296972","4":"0.04470126","5":"2430.215","6":"0.14805128","7":"0.377888170","_rn_":"4"},{"1":"squeeze - relax","2":"1","3":"0.36469528","4":"0.03741981","5":"2370.503","6":"0.26849438","7":"0.460896178","_rn_":"5"},{"1":"baseline_post_squeeze - relax","2":"1","3":"0.10172556","4":"0.04464800","5":"2430.784","6":"-0.01305595","7":"0.216507057","_rn_":"6"},{"1":"baseline_pre_squeeze - squeeze","2":"2","3":"-0.35693693","4":"0.03826615","5":"2380.407","6":"-0.45531336","7":"-0.258560507","_rn_":"7"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"2","3":"0.31137507","4":"0.04279152","5":"2415.428","6":"0.20136575","7":"0.421384385","_rn_":"8"},{"1":"baseline_pre_squeeze - relax","2":"2","3":"0.20678755","4":"0.03826615","5":"2380.407","6":"0.10841112","7":"0.305163970","_rn_":"9"},{"1":"squeeze - baseline_post_squeeze","2":"2","3":"0.66831200","4":"0.04198380","5":"2413.905","6":"0.56037912","7":"0.776244875","_rn_":"10"},{"1":"squeeze - relax","2":"2","3":"0.56372448","4":"0.03735478","5":"2369.698","6":"0.46769074","7":"0.659758215","_rn_":"11"},{"1":"baseline_post_squeeze - relax","2":"2","3":"-0.10458752","4":"0.04198380","5":"2413.905","6":"-0.21252040","7":"0.003345354","_rn_":"12"},{"1":"baseline_pre_squeeze - squeeze","2":"3","3":"-0.35901252","4":"0.03849882","5":"2382.876","6":"-0.45798703","7":"-0.260038007","_rn_":"13"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"3","3":"0.25189501","4":"0.04368237","5":"2423.715","6":"0.13959572","7":"0.364194291","_rn_":"14"},{"1":"baseline_pre_squeeze - relax","2":"3","3":"0.19625697","4":"0.03856208","5":"2383.760","6":"0.09711984","7":"0.295394095","_rn_":"15"},{"1":"squeeze - baseline_post_squeeze","2":"3","3":"0.61090752","4":"0.04267986","5":"2418.865","6":"0.50118536","7":"0.720629693","_rn_":"16"},{"1":"squeeze - relax","2":"3","3":"0.55526949","4":"0.03741981","5":"2370.518","6":"0.45906858","7":"0.651470391","_rn_":"17"},{"1":"baseline_post_squeeze - relax","2":"3","3":"-0.05563804","4":"0.04273558","5":"2418.221","6":"-0.16550347","7":"0.054227390","_rn_":"18"},{"1":"baseline_pre_squeeze - squeeze","2":"4","3":"-0.32315189","4":"0.03857849","5":"2383.889","6":"-0.42233119","7":"-0.223972587","_rn_":"19"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"4","3":"0.28284410","4":"0.04374910","5":"2421.171","6":"0.17037320","7":"0.395314994","_rn_":"20"},{"1":"baseline_pre_squeeze - relax","2":"4","3":"0.21826474","4":"0.03870403","5":"2383.923","6":"0.11876269","7":"0.317766795","_rn_":"21"},{"1":"squeeze - baseline_post_squeeze","2":"4","3":"0.60599598","4":"0.04267984","5":"2418.788","6":"0.49627387","7":"0.715718098","_rn_":"22"},{"1":"squeeze - relax","2":"4","3":"0.54141663","4":"0.03748563","5":"2371.329","6":"0.44504654","7":"0.637786723","_rn_":"23"},{"1":"baseline_post_squeeze - relax","2":"4","3":"-0.06457935","4":"0.04279389","5":"2419.112","6":"-0.17459467","7":"0.045435961","_rn_":"24"},{"1":"baseline_pre_squeeze - squeeze","2":"5","3":"-0.22857099","4":"0.03922815","5":"2389.119","6":"-0.32942031","7":"-0.127721672","_rn_":"25"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"5","3":"0.27920110","4":"0.04599361","5":"2434.289","6":"0.16096041","7":"0.397441798","_rn_":"26"},{"1":"baseline_pre_squeeze - relax","2":"5","3":"0.28988380","4":"0.03916743","5":"2389.864","6":"0.18919061","7":"0.390576985","_rn_":"27"},{"1":"squeeze - baseline_post_squeeze","2":"5","3":"0.50777209","4":"0.04452104","5":"2430.963","6":"0.39331699","7":"0.622227196","_rn_":"28"},{"1":"squeeze - relax","2":"5","3":"0.51845478","4":"0.03741981","5":"2370.503","6":"0.42225388","7":"0.614655684","_rn_":"29"},{"1":"baseline_post_squeeze - relax","2":"5","3":"0.01068269","4":"0.04446544","5":"2429.886","6":"-0.10362951","7":"0.124994896","_rn_":"30"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
+95% CIs for Trial Phase Comparisons within Manipulation Trial
 
 ``` r
 # Get estimated marginal means
@@ -1011,76 +1030,109 @@ ggplot(emms_df, aes(x = trial,
 ![](MA_PN_Manipulation-Effect_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
 
 ``` r
-# Compare manipulation trial (1 to 5) within each trial phase
-contrast(emmeans(lmm_trials, ~ manipulation_trial | trial_phase), "pairwise")
+# Compute estimated marginal means of manipulation_trial within each trial phase
+emm_trial_within_phase <- emmeans(lmm_trials, ~ manipulation_trial | trial_phase)
+
+# Pairwise comparisons of manipulation_trial within each phase
+trial_comparisons <- contrast(emm_trial_within_phase, "pairwise")
+knitr::kable(trial_comparisons, caption = "Pairwise Comparisons: Manipulation Trial within Trial Phase")
 ```
 
-    ## trial_phase = baseline_pre_squeeze:
-    ##  contrast                                  estimate     SE   df t.ratio p.value
-    ##  manipulation_trial1 - manipulation_trial2 -0.18845 0.0399 2394  -4.727  <.0001
-    ##  manipulation_trial1 - manipulation_trial3 -0.17041 0.0401 2396  -4.251  0.0002
-    ##  manipulation_trial1 - manipulation_trial4 -0.19730 0.0402 2398  -4.912  <.0001
-    ##  manipulation_trial1 - manipulation_trial5 -0.23991 0.0407 2406  -5.889  <.0001
-    ##  manipulation_trial2 - manipulation_trial3  0.01804 0.0394 2390   0.458  0.9909
-    ##  manipulation_trial2 - manipulation_trial4 -0.00885 0.0395 2392  -0.224  0.9994
-    ##  manipulation_trial2 - manipulation_trial5 -0.05146 0.0400 2393  -1.285  0.7003
-    ##  manipulation_trial3 - manipulation_trial4 -0.02690 0.0397 2390  -0.678  0.9613
-    ##  manipulation_trial3 - manipulation_trial5 -0.06950 0.0403 2396  -1.726  0.4178
-    ##  manipulation_trial4 - manipulation_trial5 -0.04260 0.0403 2392  -1.056  0.8287
-    ## 
-    ## trial_phase = squeeze:
-    ##  contrast                                  estimate     SE   df t.ratio p.value
-    ##  manipulation_trial1 - manipulation_trial2 -0.33343 0.0374 2370  -8.911  <.0001
-    ##  manipulation_trial1 - manipulation_trial3 -0.31747 0.0374 2370  -8.484  <.0001
-    ##  manipulation_trial1 - manipulation_trial4 -0.30850 0.0374 2370  -8.244  <.0001
-    ##  manipulation_trial1 - manipulation_trial5 -0.25652 0.0375 2371  -6.843  <.0001
-    ##  manipulation_trial2 - manipulation_trial3  0.01597 0.0374 2370   0.427  0.9930
-    ##  manipulation_trial2 - manipulation_trial4  0.02493 0.0374 2370   0.667  0.9633
-    ##  manipulation_trial2 - manipulation_trial5  0.07691 0.0374 2370   2.055  0.2402
-    ##  manipulation_trial3 - manipulation_trial4  0.00897 0.0374 2370   0.240  0.9993
-    ##  manipulation_trial3 - manipulation_trial5  0.06094 0.0374 2370   1.629  0.4791
-    ##  manipulation_trial4 - manipulation_trial5  0.05198 0.0374 2370   1.389  0.6348
-    ## 
-    ## trial_phase = baseline_post_squeeze:
-    ##  contrast                                  estimate     SE   df t.ratio p.value
-    ##  manipulation_trial1 - manipulation_trial2  0.07191 0.0486 2431   1.481  0.5751
-    ##  manipulation_trial1 - manipulation_trial3  0.03047 0.0492 2438   0.620  0.9720
-    ##  manipulation_trial1 - manipulation_trial4  0.03453 0.0492 2436   0.702  0.9560
-    ##  manipulation_trial1 - manipulation_trial5 -0.01172 0.0507 2437  -0.231  0.9994
-    ##  manipulation_trial2 - manipulation_trial3 -0.04144 0.0468 2420  -0.886  0.9020
-    ##  manipulation_trial2 - manipulation_trial4 -0.03738 0.0468 2432  -0.799  0.9309
-    ##  manipulation_trial2 - manipulation_trial5 -0.08363 0.0484 2433  -1.728  0.4168
-    ##  manipulation_trial3 - manipulation_trial4  0.00405 0.0474 2414   0.086  1.0000
-    ##  manipulation_trial3 - manipulation_trial5 -0.04219 0.0490 2429  -0.861  0.9110
-    ##  manipulation_trial4 - manipulation_trial5 -0.04625 0.0490 2431  -0.944  0.8797
-    ## 
-    ## trial_phase = relax:
-    ##  contrast                                  estimate     SE   df t.ratio p.value
-    ##  manipulation_trial1 - manipulation_trial2 -0.13440 0.0374 2370  -3.598  0.0030
-    ##  manipulation_trial1 - manipulation_trial3 -0.12689 0.0374 2371  -3.391  0.0064
-    ##  manipulation_trial1 - manipulation_trial4 -0.13178 0.0375 2371  -3.515  0.0041
-    ##  manipulation_trial1 - manipulation_trial5 -0.10276 0.0374 2370  -2.751  0.0472
-    ##  manipulation_trial2 - manipulation_trial3  0.00751 0.0374 2371   0.201  0.9996
-    ##  manipulation_trial2 - manipulation_trial4  0.00262 0.0375 2371   0.070  1.0000
-    ##  manipulation_trial2 - manipulation_trial5  0.03164 0.0374 2370   0.847  0.9158
-    ##  manipulation_trial3 - manipulation_trial4 -0.00489 0.0376 2372  -0.130  0.9999
-    ##  manipulation_trial3 - manipulation_trial5  0.02413 0.0374 2371   0.645  0.9676
-    ##  manipulation_trial4 - manipulation_trial5  0.02901 0.0375 2371   0.774  0.9381
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## P value adjustment: tukey method for comparing a family of 5 estimates
+| contrast | trial_phase | estimate | SE | df | t.ratio | p.value |
+|:---|:---|---:|---:|---:|---:|---:|
+| manipulation_trial1 - manipulation_trial2 | baseline_pre_squeeze | -0.1884494 | 0.0398650 | 2393.836 | -4.7271864 | 0.0000237 |
+| manipulation_trial1 - manipulation_trial3 | baseline_pre_squeeze | -0.1704074 | 0.0400891 | 2396.472 | -4.2507130 | 0.0002145 |
+| manipulation_trial1 - manipulation_trial4 | baseline_pre_squeeze | -0.1973027 | 0.0401659 | 2397.583 | -4.9121945 | 0.0000095 |
+| manipulation_trial1 - manipulation_trial5 | baseline_pre_squeeze | -0.2399074 | 0.0407355 | 2405.906 | -5.8893987 | 0.0000000 |
+| manipulation_trial2 - manipulation_trial3 | baseline_pre_squeeze | 0.0180421 | 0.0393812 | 2389.521 | 0.4581393 | 0.9909373 |
+| manipulation_trial2 - manipulation_trial4 | baseline_pre_squeeze | -0.0088532 | 0.0394608 | 2392.050 | -0.2243556 | 0.9994388 |
+| manipulation_trial2 - manipulation_trial5 | baseline_pre_squeeze | -0.0514579 | 0.0400327 | 2393.340 | -1.2853970 | 0.7002908 |
+| manipulation_trial3 - manipulation_trial4 | baseline_pre_squeeze | -0.0268953 | 0.0396821 | 2389.628 | -0.6777695 | 0.9612562 |
+| manipulation_trial3 - manipulation_trial5 | baseline_pre_squeeze | -0.0695000 | 0.0402559 | 2396.013 | -1.7264566 | 0.4177679 |
+| manipulation_trial4 - manipulation_trial5 | baseline_pre_squeeze | -0.0426047 | 0.0403272 | 2391.811 | -1.0564757 | 0.8287094 |
+| manipulation_trial1 - manipulation_trial2 | squeeze | -0.3334320 | 0.0374198 | 2370.503 | -8.9105752 | 0.0000000 |
+| manipulation_trial1 - manipulation_trial3 | squeeze | -0.3174656 | 0.0374198 | 2370.503 | -8.4838898 | 0.0000000 |
+| manipulation_trial1 - manipulation_trial4 | squeeze | -0.3085003 | 0.0374198 | 2370.503 | -8.2443026 | 0.0000000 |
+| manipulation_trial1 - manipulation_trial5 | squeeze | -0.2565240 | 0.0374847 | 2371.311 | -6.8434262 | 0.0000000 |
+| manipulation_trial2 - manipulation_trial3 | squeeze | 0.0159665 | 0.0373548 | 2369.698 | 0.4274283 | 0.9930471 |
+| manipulation_trial2 - manipulation_trial4 | squeeze | 0.0249318 | 0.0373548 | 2369.698 | 0.6674326 | 0.9633365 |
+| manipulation_trial2 - manipulation_trial5 | squeeze | 0.0769080 | 0.0374198 | 2370.503 | 2.0552750 | 0.2401569 |
+| manipulation_trial3 - manipulation_trial4 | squeeze | 0.0089653 | 0.0373548 | 2369.698 | 0.2400043 | 0.9992676 |
+| manipulation_trial3 - manipulation_trial5 | squeeze | 0.0609415 | 0.0374198 | 2370.503 | 1.6285895 | 0.4791186 |
+| manipulation_trial4 - manipulation_trial5 | squeeze | 0.0519762 | 0.0374198 | 2370.503 | 1.3890023 | 0.6348194 |
+| manipulation_trial1 - manipulation_trial2 | baseline_post_squeeze | 0.0719102 | 0.0485591 | 2431.279 | 1.4808794 | 0.5750575 |
+| manipulation_trial1 - manipulation_trial3 | baseline_post_squeeze | 0.0304722 | 0.0491674 | 2437.697 | 0.6197649 | 0.9719728 |
+| manipulation_trial1 - manipulation_trial4 | baseline_post_squeeze | 0.0345260 | 0.0491644 | 2435.577 | 0.7022569 | 0.9560220 |
+| manipulation_trial1 - manipulation_trial5 | baseline_post_squeeze | -0.0117217 | 0.0507144 | 2436.941 | -0.2311311 | 0.9993688 |
+| manipulation_trial2 - manipulation_trial3 | baseline_post_squeeze | -0.0414380 | 0.0467544 | 2420.021 | -0.8862904 | 0.9020486 |
+| manipulation_trial2 - manipulation_trial4 | baseline_post_squeeze | -0.0373842 | 0.0467702 | 2431.783 | -0.7993171 | 0.9308522 |
+| manipulation_trial2 - manipulation_trial5 | baseline_post_squeeze | -0.0836319 | 0.0483952 | 2432.662 | -1.7281023 | 0.4167575 |
+| manipulation_trial3 - manipulation_trial4 | baseline_post_squeeze | 0.0040538 | 0.0473673 | 2413.654 | 0.0855815 | 0.9999879 |
+| manipulation_trial3 - manipulation_trial5 | baseline_post_squeeze | -0.0421939 | 0.0489907 | 2428.846 | -0.8612643 | 0.9109509 |
+| manipulation_trial4 - manipulation_trial5 | baseline_post_squeeze | -0.0462477 | 0.0489937 | 2430.852 | -0.9439525 | 0.8796606 |
+| manipulation_trial1 - manipulation_trial2 | relax | -0.1344028 | 0.0373548 | 2369.698 | -3.5980093 | 0.0030171 |
+| manipulation_trial1 - manipulation_trial3 | relax | -0.1268913 | 0.0374198 | 2370.518 | -3.3910203 | 0.0063568 |
+| manipulation_trial1 - manipulation_trial4 | relax | -0.1317789 | 0.0374856 | 2371.329 | -3.5154508 | 0.0040838 |
+| manipulation_trial1 - manipulation_trial5 | relax | -0.1027645 | 0.0373548 | 2369.698 | -2.7510411 | 0.0471711 |
+| manipulation_trial2 - manipulation_trial3 | relax | 0.0075115 | 0.0374198 | 2370.518 | 0.2007359 | 0.9996387 |
+| manipulation_trial2 - manipulation_trial4 | relax | 0.0026240 | 0.0374856 | 2371.329 | 0.0699989 | 0.9999946 |
+| manipulation_trial2 - manipulation_trial5 | relax | 0.0316383 | 0.0373548 | 2369.698 | 0.8469681 | 0.9158127 |
+| manipulation_trial3 - manipulation_trial4 | relax | -0.0048875 | 0.0375505 | 2372.156 | -0.1301594 | 0.9999354 |
+| manipulation_trial3 - manipulation_trial5 | relax | 0.0241268 | 0.0374198 | 2370.518 | 0.6447603 | 0.9676372 |
+| manipulation_trial4 - manipulation_trial5 | relax | 0.0290144 | 0.0374856 | 2371.329 | 0.7740128 | 0.9381112 |
+
+Pairwise Comparisons: Manipulation Trial within Trial Phase
 
 ``` r
-confint(contrast(emmeans(lmm_trials, ~ manipulation_trial| trial_phase), "pairwise"))
+# Confidence intervals for those comparisons
+trial_comparisons_ci <- confint(trial_comparisons)
+knitr::kable(trial_comparisons_ci, caption = "95% CIs for Manipulation Trial Comparisons within Trial Phase")
 ```
 
-<div data-pagedtable="false">
+| contrast | trial_phase | estimate | SE | df | lower.CL | upper.CL |
+|:---|:---|---:|---:|---:|---:|---:|
+| manipulation_trial1 - manipulation_trial2 | baseline_pre_squeeze | -0.1884494 | 0.0398650 | 2393.836 | -0.2972752 | -0.0796236 |
+| manipulation_trial1 - manipulation_trial3 | baseline_pre_squeeze | -0.1704074 | 0.0400891 | 2396.472 | -0.2798448 | -0.0609699 |
+| manipulation_trial1 - manipulation_trial4 | baseline_pre_squeeze | -0.1973027 | 0.0401659 | 2397.583 | -0.3069496 | -0.0876557 |
+| manipulation_trial1 - manipulation_trial5 | baseline_pre_squeeze | -0.2399074 | 0.0407355 | 2405.906 | -0.3511089 | -0.1287059 |
+| manipulation_trial2 - manipulation_trial3 | baseline_pre_squeeze | 0.0180421 | 0.0393812 | 2389.521 | -0.0894631 | 0.1255472 |
+| manipulation_trial2 - manipulation_trial4 | baseline_pre_squeeze | -0.0088532 | 0.0394608 | 2392.050 | -0.1165755 | 0.0988690 |
+| manipulation_trial2 - manipulation_trial5 | baseline_pre_squeeze | -0.0514579 | 0.0400327 | 2393.340 | -0.1607415 | 0.0578256 |
+| manipulation_trial3 - manipulation_trial4 | baseline_pre_squeeze | -0.0268953 | 0.0396821 | 2389.628 | -0.1352219 | 0.0814312 |
+| manipulation_trial3 - manipulation_trial5 | baseline_pre_squeeze | -0.0695000 | 0.0402559 | 2396.013 | -0.1793927 | 0.0403926 |
+| manipulation_trial4 - manipulation_trial5 | baseline_pre_squeeze | -0.0426047 | 0.0403272 | 2391.811 | -0.1526922 | 0.0674828 |
+| manipulation_trial1 - manipulation_trial2 | squeeze | -0.3334320 | 0.0374198 | 2370.503 | -0.4355835 | -0.2312806 |
+| manipulation_trial1 - manipulation_trial3 | squeeze | -0.3174656 | 0.0374198 | 2370.503 | -0.4196170 | -0.2153141 |
+| manipulation_trial1 - manipulation_trial4 | squeeze | -0.3085003 | 0.0374198 | 2370.503 | -0.4106517 | -0.2063488 |
+| manipulation_trial1 - manipulation_trial5 | squeeze | -0.2565240 | 0.0374847 | 2371.311 | -0.3588527 | -0.1541954 |
+| manipulation_trial2 - manipulation_trial3 | squeeze | 0.0159665 | 0.0373548 | 2369.698 | -0.0860075 | 0.1179404 |
+| manipulation_trial2 - manipulation_trial4 | squeeze | 0.0249318 | 0.0373548 | 2369.698 | -0.0770422 | 0.1269058 |
+| manipulation_trial2 - manipulation_trial5 | squeeze | 0.0769080 | 0.0374198 | 2370.503 | -0.0252435 | 0.1790595 |
+| manipulation_trial3 - manipulation_trial4 | squeeze | 0.0089653 | 0.0373548 | 2369.698 | -0.0930087 | 0.1109393 |
+| manipulation_trial3 - manipulation_trial5 | squeeze | 0.0609415 | 0.0374198 | 2370.503 | -0.0412099 | 0.1630930 |
+| manipulation_trial4 - manipulation_trial5 | squeeze | 0.0519762 | 0.0374198 | 2370.503 | -0.0501753 | 0.1541277 |
+| manipulation_trial1 - manipulation_trial2 | baseline_post_squeeze | 0.0719102 | 0.0485591 | 2431.279 | -0.0606477 | 0.2044681 |
+| manipulation_trial1 - manipulation_trial3 | baseline_post_squeeze | 0.0304722 | 0.0491674 | 2437.697 | -0.1037459 | 0.1646904 |
+| manipulation_trial1 - manipulation_trial4 | baseline_post_squeeze | 0.0345260 | 0.0491644 | 2435.577 | -0.0996838 | 0.1687359 |
+| manipulation_trial1 - manipulation_trial5 | baseline_post_squeeze | -0.0117217 | 0.0507144 | 2436.941 | -0.1501628 | 0.1267194 |
+| manipulation_trial2 - manipulation_trial3 | baseline_post_squeeze | -0.0414380 | 0.0467544 | 2420.021 | -0.1690697 | 0.0861938 |
+| manipulation_trial2 - manipulation_trial4 | baseline_post_squeeze | -0.0373842 | 0.0467702 | 2431.783 | -0.1650586 | 0.0902902 |
+| manipulation_trial2 - manipulation_trial5 | baseline_post_squeeze | -0.0836319 | 0.0483952 | 2432.662 | -0.2157423 | 0.0484785 |
+| manipulation_trial3 - manipulation_trial4 | baseline_post_squeeze | 0.0040538 | 0.0473673 | 2413.654 | -0.1252514 | 0.1333589 |
+| manipulation_trial3 - manipulation_trial5 | baseline_post_squeeze | -0.0421939 | 0.0489907 | 2428.846 | -0.1759299 | 0.0915421 |
+| manipulation_trial4 - manipulation_trial5 | baseline_post_squeeze | -0.0462477 | 0.0489937 | 2430.852 | -0.1799918 | 0.0874964 |
+| manipulation_trial1 - manipulation_trial2 | relax | -0.1344028 | 0.0373548 | 2369.698 | -0.2363768 | -0.0324289 |
+| manipulation_trial1 - manipulation_trial3 | relax | -0.1268913 | 0.0374198 | 2370.518 | -0.2290428 | -0.0247399 |
+| manipulation_trial1 - manipulation_trial4 | relax | -0.1317789 | 0.0374856 | 2371.329 | -0.2341100 | -0.0294478 |
+| manipulation_trial1 - manipulation_trial5 | relax | -0.1027645 | 0.0373548 | 2369.698 | -0.2047385 | -0.0007906 |
+| manipulation_trial2 - manipulation_trial3 | relax | 0.0075115 | 0.0374198 | 2370.518 | -0.0946400 | 0.1096630 |
+| manipulation_trial2 - manipulation_trial4 | relax | 0.0026240 | 0.0374856 | 2371.329 | -0.0997072 | 0.1049551 |
+| manipulation_trial2 - manipulation_trial5 | relax | 0.0316383 | 0.0373548 | 2369.698 | -0.0703356 | 0.1336123 |
+| manipulation_trial3 - manipulation_trial4 | relax | -0.0048875 | 0.0375505 | 2372.156 | -0.1073956 | 0.0976205 |
+| manipulation_trial3 - manipulation_trial5 | relax | 0.0241268 | 0.0374198 | 2370.518 | -0.0780247 | 0.1262783 |
+| manipulation_trial4 - manipulation_trial5 | relax | 0.0290144 | 0.0374856 | 2371.329 | -0.0733168 | 0.1313455 |
 
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["contrast"],"name":[1],"type":["fct"],"align":["left"]},{"label":["trial_phase"],"name":[2],"type":["fct"],"align":["left"]},{"label":["estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["SE"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["df"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["lower.CL"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["upper.CL"],"name":[7],"type":["dbl"],"align":["right"]}],"data":[{"1":"manipulation_trial1 - manipulation_trial2","2":"baseline_pre_squeeze","3":"-0.188449428","4":"0.03986503","5":"2393.836","6":"-0.29727521","7":"-0.0796236437","_rn_":"1"},{"1":"manipulation_trial1 - manipulation_trial3","2":"baseline_pre_squeeze","3":"-0.170407353","4":"0.04008912","5":"2396.472","6":"-0.27984479","7":"-0.0609699198","_rn_":"2"},{"1":"manipulation_trial1 - manipulation_trial4","2":"baseline_pre_squeeze","3":"-0.197302673","4":"0.04016589","5":"2397.583","6":"-0.30694964","7":"-0.0876557095","_rn_":"3"},{"1":"manipulation_trial1 - manipulation_trial5","2":"baseline_pre_squeeze","3":"-0.239907368","4":"0.04073546","5":"2405.906","6":"-0.35110888","7":"-0.1287058599","_rn_":"4"},{"1":"manipulation_trial2 - manipulation_trial3","2":"baseline_pre_squeeze","3":"0.018042075","4":"0.03938120","5":"2389.521","6":"-0.08946308","7":"0.1255472306","_rn_":"5"},{"1":"manipulation_trial2 - manipulation_trial4","2":"baseline_pre_squeeze","3":"-0.008853245","4":"0.03946077","5":"2392.050","6":"-0.11657553","7":"0.0988690400","_rn_":"6"},{"1":"manipulation_trial2 - manipulation_trial5","2":"baseline_pre_squeeze","3":"-0.051457941","4":"0.04003272","5":"2393.340","6":"-0.16074151","7":"0.0578256316","_rn_":"7"},{"1":"manipulation_trial3 - manipulation_trial4","2":"baseline_pre_squeeze","3":"-0.026895320","4":"0.03968210","5":"2389.628","6":"-0.13522189","7":"0.0814312448","_rn_":"8"},{"1":"manipulation_trial3 - manipulation_trial5","2":"baseline_pre_squeeze","3":"-0.069500016","4":"0.04025587","5":"2396.013","6":"-0.17939267","7":"0.0403926350","_rn_":"9"},{"1":"manipulation_trial4 - manipulation_trial5","2":"baseline_pre_squeeze","3":"-0.042604695","4":"0.04032719","5":"2391.811","6":"-0.15269218","7":"0.0674827914","_rn_":"10"},{"1":"manipulation_trial1 - manipulation_trial2","2":"squeeze","3":"-0.333432047","4":"0.03741981","5":"2370.503","6":"-0.43558350","7":"-0.2312805892","_rn_":"11"},{"1":"manipulation_trial1 - manipulation_trial3","2":"squeeze","3":"-0.317465557","4":"0.03741981","5":"2370.503","6":"-0.41961702","7":"-0.2153140996","_rn_":"12"},{"1":"manipulation_trial1 - manipulation_trial4","2":"squeeze","3":"-0.308500250","4":"0.03741981","5":"2370.503","6":"-0.41065171","7":"-0.2063487924","_rn_":"13"},{"1":"manipulation_trial1 - manipulation_trial5","2":"squeeze","3":"-0.256524045","4":"0.03748474","5":"2371.311","6":"-0.35885272","7":"-0.1541953708","_rn_":"14"},{"1":"manipulation_trial2 - manipulation_trial3","2":"squeeze","3":"0.015966490","4":"0.03735478","5":"2369.698","6":"-0.08600747","7":"0.1179404482","_rn_":"15"},{"1":"manipulation_trial2 - manipulation_trial4","2":"squeeze","3":"0.024931797","4":"0.03735478","5":"2369.698","6":"-0.07704216","7":"0.1269057554","_rn_":"16"},{"1":"manipulation_trial2 - manipulation_trial5","2":"squeeze","3":"0.076908002","4":"0.03741981","5":"2370.503","6":"-0.02524346","7":"0.1790594600","_rn_":"17"},{"1":"manipulation_trial3 - manipulation_trial4","2":"squeeze","3":"0.008965307","4":"0.03735478","5":"2369.698","6":"-0.09300865","7":"0.1109392658","_rn_":"18"},{"1":"manipulation_trial3 - manipulation_trial5","2":"squeeze","3":"0.060941513","4":"0.03741981","5":"2370.503","6":"-0.04120995","7":"0.1630929704","_rn_":"19"},{"1":"manipulation_trial4 - manipulation_trial5","2":"squeeze","3":"0.051976205","4":"0.03741981","5":"2370.503","6":"-0.05017525","7":"0.1541276633","_rn_":"20"},{"1":"manipulation_trial1 - manipulation_trial2","2":"baseline_post_squeeze","3":"0.071910229","4":"0.04855914","5":"2431.279","6":"-0.06064766","7":"0.2044681189","_rn_":"21"},{"1":"manipulation_trial1 - manipulation_trial3","2":"baseline_post_squeeze","3":"0.030472245","4":"0.04916743","5":"2437.697","6":"-0.10374590","7":"0.1646903906","_rn_":"22"},{"1":"manipulation_trial1 - manipulation_trial4","2":"baseline_post_squeeze","3":"0.034526012","4":"0.04916436","5":"2435.577","6":"-0.09968384","7":"0.1687358689","_rn_":"23"},{"1":"manipulation_trial1 - manipulation_trial5","2":"baseline_post_squeeze","3":"-0.011721675","4":"0.05071440","5":"2436.941","6":"-0.15016280","7":"0.1267194459","_rn_":"24"},{"1":"manipulation_trial2 - manipulation_trial3","2":"baseline_post_squeeze","3":"-0.041437984","4":"0.04675441","5":"2420.021","6":"-0.16906973","7":"0.0861937607","_rn_":"25"},{"1":"manipulation_trial2 - manipulation_trial4","2":"baseline_post_squeeze","3":"-0.037384217","4":"0.04677020","5":"2431.783","6":"-0.16505859","7":"0.0902901557","_rn_":"26"},{"1":"manipulation_trial2 - manipulation_trial5","2":"baseline_post_squeeze","3":"-0.083631904","4":"0.04839523","5":"2432.662","6":"-0.21574229","7":"0.0484784817","_rn_":"27"},{"1":"manipulation_trial3 - manipulation_trial4","2":"baseline_post_squeeze","3":"0.004053767","4":"0.04736732","5":"2413.654","6":"-0.12525138","7":"0.1333589172","_rn_":"28"},{"1":"manipulation_trial3 - manipulation_trial5","2":"baseline_post_squeeze","3":"-0.042193920","4":"0.04899068","5":"2428.846","6":"-0.17592993","7":"0.0915420897","_rn_":"29"},{"1":"manipulation_trial4 - manipulation_trial5","2":"baseline_post_squeeze","3":"-0.046247687","4":"0.04899366","5":"2430.852","6":"-0.17999177","7":"0.0874963912","_rn_":"30"},{"1":"manipulation_trial1 - manipulation_trial2","2":"relax","3":"-0.134402848","4":"0.03735478","5":"2369.698","6":"-0.23637681","7":"-0.0324288891","_rn_":"31"},{"1":"manipulation_trial1 - manipulation_trial3","2":"relax","3":"-0.126891349","4":"0.03741981","5":"2370.518","6":"-0.22904281","7":"-0.0247398858","_rn_":"32"},{"1":"manipulation_trial1 - manipulation_trial4","2":"relax","3":"-0.131778896","4":"0.03748563","5":"2371.329","6":"-0.23411001","7":"-0.0294477839","_rn_":"33"},{"1":"manipulation_trial1 - manipulation_trial5","2":"relax","3":"-0.102764538","4":"0.03735478","5":"2369.698","6":"-0.20473850","7":"-0.0007905796","_rn_":"34"},{"1":"manipulation_trial2 - manipulation_trial3","2":"relax","3":"0.007511498","4":"0.03741981","5":"2370.518","6":"-0.09463997","7":"0.1096629619","_rn_":"35"},{"1":"manipulation_trial2 - manipulation_trial4","2":"relax","3":"0.002623952","4":"0.03748563","5":"2371.329","6":"-0.09970716","7":"0.1049550638","_rn_":"36"},{"1":"manipulation_trial2 - manipulation_trial5","2":"relax","3":"0.031638310","4":"0.03735478","5":"2369.698","6":"-0.07033565","7":"0.1336122682","_rn_":"37"},{"1":"manipulation_trial3 - manipulation_trial4","2":"relax","3":"-0.004887547","4":"0.03755046","5":"2372.156","6":"-0.10739560","7":"0.0976205020","_rn_":"38"},{"1":"manipulation_trial3 - manipulation_trial5","2":"relax","3":"0.024126811","4":"0.03741981","5":"2370.518","6":"-0.07802465","7":"0.1262782746","_rn_":"39"},{"1":"manipulation_trial4 - manipulation_trial5","2":"relax","3":"0.029014358","4":"0.03748563","5":"2371.329","6":"-0.07331675","7":"0.1313454699","_rn_":"40"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
+95% CIs for Manipulation Trial Comparisons within Trial Phase
 
 ``` r
 # Get EMMs by trial_phase within each manipulation_trial
@@ -1122,24 +1174,15 @@ ggplot(emm_data, aes(x = trial_phase, y = yvar, color = as.factor(manipulation_t
 
 ``` r
 # Result 4
+# Fit model with group × manipulation_trial × trial_phase interaction
 lmm_trials_group <- lmer(
   trial_corr_rpd ~ group.y * manipulation_trial * trial_phase + (1 | id),
   data = df_grip
 )
-anova(lmm_trials_group)
-```
 
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Sum Sq"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["NumDF"],"name":[3],"type":["int"],"align":["right"]},{"label":["DenDF"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"0.2547551","2":"0.12737757","3":"2","4":"142.8629","5":"1.2546423","6":"2.883007e-01","_rn_":"group.y"},{"1":"8.0322001","2":"2.00805002","3":"4","4":"2358.0847","5":"19.7788707","6":"4.969356e-16","_rn_":"manipulation_trial"},{"1":"116.8698260","2":"38.95660867","3":"3","4":"2379.9064","5":"383.7144074","6":"2.858062e-203","_rn_":"trial_phase"},{"1":"0.1134831","2":"0.01418539","3":"8","4":"2358.0868","5":"0.1397231","6":"9.973795e-01","_rn_":"group.y:manipulation_trial"},{"1":"2.4886897","2":"0.41478162","3":"6","4":"2379.2287","5":"4.0855117","6":"4.392493e-04","_rn_":"group.y:trial_phase"},{"1":"6.4601257","2":"0.53834381","3":"12","4":"2352.7388","5":"5.3025734","6":"6.595825e-09","_rn_":"manipulation_trial:trial_phase"},{"1":"1.9601540","2":"0.08167308","3":"24","4":"2352.5445","5":"0.8044627","6":"7.348206e-01","_rn_":"group.y:manipulation_trial:trial_phase"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
-
-``` r
+# Run and display ANOVA table
 anova_table <- anova(lmm_trials_group)
-knitr::kable(anova_table, caption = "ANOVA Results")
+knitr::kable(anova_table, caption = "ANOVA Results: Group × Trial × Phase Interaction")
 ```
 
 |  | Sum Sq | Mean Sq | NumDF | DenDF | F value | Pr(\>F) |
@@ -1152,389 +1195,317 @@ knitr::kable(anova_table, caption = "ANOVA Results")
 | manipulation_trial:trial_phase | 6.4601257 | 0.5383438 | 12 | 2352.7388 | 5.3025734 | 0.0000000 |
 | group.y:manipulation_trial:trial_phase | 1.9601540 | 0.0816731 | 24 | 2352.5445 | 0.8044627 | 0.7348206 |
 
-ANOVA Results
+ANOVA Results: Group × Trial × Phase Interaction
 
 ``` r
-r2_nakagawa(lmm_trials_group) 
+# Compute and display marginal/conditional R²
+r2_group_trials <- r2_nakagawa(lmm_trials_group)
+knitr::kable(r2_group_trials, caption = "Nakagawa R² for Group × Manipulation Trial × Phase Model")
 ```
 
-    ## # R2 for Mixed Models
-    ## 
-    ##   Conditional R2: 0.363
-    ##      Marginal R2: 0.356
+<table class="kable_wrapper">
+<caption>
+Nakagawa R² for Group × Manipulation Trial × Phase Model
+</caption>
+<tbody>
+<tr>
+<td>
+
+|                |        x |
+|:---------------|---------:|
+| Conditional R2 | 0.362882 |
+
+</td>
+<td>
+
+|             |         x |
+|:------------|----------:|
+| Marginal R2 | 0.3557756 |
+
+</td>
+</tr>
+</tbody>
+</table>
 
 ``` r
-emmeans(lmm_trials_group, ~ trial_phase | group.y * manipulation_trial)
+# Compute estimated marginal means of trial_phase within each group × manipulation trial combination
+emm_group_trial_phase <- emmeans(lmm_trials_group, ~ trial_phase | group.y * manipulation_trial)
+
+# Display the results as a Markdown table
+knitr::kable(emm_group_trial_phase, caption = "Estimated Marginal Means: Trial Phase by Group and Manipulation Trial")
 ```
 
-    ## group.y = ASD, manipulation_trial = 1:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze  -0.113753 0.0494 2468 -0.21070  -0.0168
-    ##  squeeze                0.064348 0.0453 2465 -0.02450   0.1532
-    ##  baseline_post_squeeze -0.219991 0.0575 2470 -0.33283  -0.1072
-    ##  relax                 -0.232878 0.0449 2465 -0.32086  -0.1449
-    ## 
-    ## group.y = CON, manipulation_trial = 1:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze  -0.138383 0.0462 2466 -0.22907  -0.0477
-    ##  squeeze                0.126480 0.0440 2465  0.04018   0.2128
-    ##  baseline_post_squeeze -0.213811 0.0605 2470 -0.33254  -0.0951
-    ##  relax                 -0.320260 0.0440 2465 -0.40656  -0.2340
-    ## 
-    ## group.y = MHC, manipulation_trial = 1:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze  -0.172356 0.0550 2466 -0.28013  -0.0646
-    ##  squeeze                0.013964 0.0495 2459 -0.08303   0.1110
-    ##  baseline_post_squeeze -0.111864 0.0717 2467 -0.25247   0.0287
-    ##  relax                 -0.328923 0.0495 2459 -0.42592  -0.2319
-    ## 
-    ## group.y = ASD, manipulation_trial = 2:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.023009 0.0462 2466 -0.06767   0.1137
-    ##  squeeze                0.368390 0.0449 2465  0.28041   0.4564
-    ##  baseline_post_squeeze -0.236849 0.0534 2469 -0.34156  -0.1321
-    ##  relax                 -0.128991 0.0449 2465 -0.21697  -0.0410
-    ## 
-    ## group.y = CON, manipulation_trial = 2:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.034462 0.0458 2466 -0.05529   0.1242
-    ##  squeeze                0.454682 0.0440 2465  0.36838   0.5410
-    ##  baseline_post_squeeze -0.227493 0.0549 2469 -0.33524  -0.1197
-    ##  relax                 -0.183744 0.0440 2465 -0.27005  -0.0974
-    ## 
-    ## group.y = MHC, manipulation_trial = 2:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.103640 0.0534 2462 -0.00113   0.2084
-    ##  squeeze                0.389887 0.0495 2459  0.29289   0.4869
-    ##  baseline_post_squeeze -0.343087 0.0629 2466 -0.46639  -0.2198
-    ##  relax                 -0.160131 0.0495 2459 -0.25713  -0.0631
-    ## 
-    ## group.y = ASD, manipulation_trial = 3:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.041101 0.0494 2468 -0.05584   0.1380
-    ##  squeeze                0.335861 0.0449 2465  0.24788   0.4238
-    ##  baseline_post_squeeze -0.205267 0.0542 2469 -0.31146  -0.0991
-    ##  relax                 -0.113939 0.0453 2465 -0.20279  -0.0251
-    ## 
-    ## group.y = CON, manipulation_trial = 3:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.045869 0.0453 2466 -0.04298   0.1347
-    ##  squeeze                0.452420 0.0440 2465  0.36612   0.5387
-    ##  baseline_post_squeeze -0.201975 0.0595 2470 -0.31864  -0.0853
-    ##  relax                 -0.233490 0.0440 2465 -0.31979  -0.1472
-    ## 
-    ## group.y = MHC, manipulation_trial = 3:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.000125 0.0520 2461 -0.10185   0.1021
-    ##  squeeze                0.376738 0.0495 2459  0.27974   0.4737
-    ##  baseline_post_squeeze -0.261709 0.0617 2465 -0.38270  -0.1407
-    ##  relax                 -0.140519 0.0495 2459 -0.23751  -0.0435
-    ## 
-    ## group.y = ASD, manipulation_trial = 4:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.115331 0.0483 2467  0.02062   0.2100
-    ##  squeeze                0.349122 0.0449 2465  0.26114   0.4371
-    ##  baseline_post_squeeze -0.286554 0.0549 2469 -0.39430  -0.1788
-    ##  relax                 -0.137049 0.0449 2465 -0.22503  -0.0491
-    ## 
-    ## group.y = CON, manipulation_trial = 4:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.007307 0.0462 2466 -0.08338   0.0980
-    ##  squeeze                0.444809 0.0440 2465  0.35851   0.5311
-    ##  baseline_post_squeeze -0.158991 0.0595 2470 -0.27565  -0.0423
-    ##  relax                 -0.167423 0.0444 2465 -0.25455  -0.0803
-    ## 
-    ## group.y = MHC, manipulation_trial = 4:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.055146 0.0527 2461 -0.04820   0.1585
-    ##  squeeze                0.339075 0.0495 2459  0.24208   0.4361
-    ##  baseline_post_squeeze -0.218981 0.0606 2465 -0.33779  -0.1002
-    ##  relax                 -0.180679 0.0501 2460 -0.27885  -0.0825
-    ## 
-    ## group.y = ASD, manipulation_trial = 5:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.146594 0.0483 2467  0.05188   0.2413
-    ##  squeeze                0.253992 0.0453 2465  0.16514   0.3428
-    ##  baseline_post_squeeze -0.172612 0.0558 2469 -0.28198  -0.0632
-    ##  relax                 -0.189077 0.0449 2465 -0.27705  -0.1011
-    ## 
-    ## group.y = CON, manipulation_trial = 5:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.117238 0.0500 2468  0.01912   0.2154
-    ##  squeeze                0.428539 0.0440 2465  0.34224   0.5148
-    ##  baseline_post_squeeze -0.141158 0.0617 2470 -0.26206  -0.0203
-    ##  relax                 -0.242301 0.0440 2465 -0.32860  -0.1560
-    ## 
-    ## group.y = MHC, manipulation_trial = 5:
-    ##  trial_phase              emmean     SE   df lower.CL upper.CL
-    ##  baseline_pre_squeeze   0.026790 0.0527 2462 -0.07655   0.1301
-    ##  squeeze                0.292658 0.0495 2459  0.19566   0.3897
-    ##  baseline_post_squeeze -0.239418 0.0717 2469 -0.37996  -0.0989
-    ##  relax                 -0.123257 0.0495 2459 -0.22025  -0.0263
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## Confidence level used: 0.95
+| trial_phase | group.y | manipulation_trial | emmean | SE | df | lower.CL | upper.CL |
+|:---|:---|:---|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze | ASD | 1 | -0.1137535 | 0.0494377 | 2467.537 | -0.2106971 | -0.0168099 |
+| squeeze | ASD | 1 | 0.0643477 | 0.0453116 | 2465.177 | -0.0245049 | 0.1532003 |
+| baseline_post_squeeze | ASD | 1 | -0.2199906 | 0.0575418 | 2469.569 | -0.3328259 | -0.1071554 |
+| relax | ASD | 1 | -0.2328776 | 0.0448652 | 2464.845 | -0.3208550 | -0.1449001 |
+| baseline_pre_squeeze | CON | 1 | -0.1383827 | 0.0462454 | 2466.346 | -0.2290665 | -0.0476988 |
+| squeeze | CON | 1 | 0.1264803 | 0.0440106 | 2464.845 | 0.0401788 | 0.2127819 |
+| baseline_post_squeeze | CON | 1 | -0.2138106 | 0.0605452 | 2469.880 | -0.3325352 | -0.0950859 |
+| relax | CON | 1 | -0.3202601 | 0.0440106 | 2464.845 | -0.4065616 | -0.2339585 |
+| baseline_pre_squeeze | MHC | 1 | -0.1723563 | 0.0549626 | 2465.664 | -0.2801338 | -0.0645787 |
+| squeeze | MHC | 1 | 0.0139639 | 0.0494636 | 2459.081 | -0.0830306 | 0.1109584 |
+| baseline_post_squeeze | MHC | 1 | -0.1118635 | 0.0717066 | 2467.347 | -0.2524748 | 0.0287478 |
+| relax | MHC | 1 | -0.3289228 | 0.0494636 | 2459.081 | -0.4259173 | -0.2319282 |
+| baseline_pre_squeeze | ASD | 2 | 0.0230095 | 0.0462456 | 2465.869 | -0.0676747 | 0.1136937 |
+| squeeze | ASD | 2 | 0.3683897 | 0.0448652 | 2464.845 | 0.2804123 | 0.4563672 |
+| baseline_post_squeeze | ASD | 2 | -0.2368488 | 0.0533976 | 2468.846 | -0.3415574 | -0.1321401 |
+| relax | ASD | 2 | -0.1289908 | 0.0448652 | 2464.845 | -0.2169682 | -0.0410133 |
+| baseline_pre_squeeze | CON | 2 | 0.0344616 | 0.0457713 | 2465.975 | -0.0552926 | 0.1242158 |
+| squeeze | CON | 2 | 0.4546825 | 0.0440106 | 2464.845 | 0.3683810 | 0.5409841 |
+| baseline_post_squeeze | CON | 2 | -0.2274932 | 0.0549453 | 2469.266 | -0.3352369 | -0.1197496 |
+| relax | CON | 2 | -0.1837441 | 0.0440106 | 2464.845 | -0.2700456 | -0.0974425 |
+| baseline_pre_squeeze | MHC | 2 | 0.1036400 | 0.0534294 | 2462.109 | -0.0011312 | 0.2084111 |
+| squeeze | MHC | 2 | 0.3898868 | 0.0494636 | 2459.081 | 0.2928922 | 0.4868813 |
+| baseline_post_squeeze | MHC | 2 | -0.3430867 | 0.0628797 | 2465.848 | -0.4663892 | -0.2197842 |
+| relax | MHC | 2 | -0.1601313 | 0.0494636 | 2459.081 | -0.2571258 | -0.0631368 |
+| baseline_pre_squeeze | ASD | 3 | 0.0411013 | 0.0494377 | 2467.506 | -0.0558424 | 0.1380449 |
+| squeeze | ASD | 3 | 0.3358611 | 0.0448652 | 2464.845 | 0.2478836 | 0.4238386 |
+| baseline_post_squeeze | ASD | 3 | -0.2052669 | 0.0541548 | 2469.028 | -0.3114604 | -0.0990734 |
+| relax | ASD | 3 | -0.1139388 | 0.0453116 | 2465.159 | -0.2027915 | -0.0250862 |
+| baseline_pre_squeeze | CON | 3 | 0.0458694 | 0.0453112 | 2465.831 | -0.0429826 | 0.1347214 |
+| squeeze | CON | 3 | 0.4524203 | 0.0440106 | 2464.845 | 0.3661188 | 0.5387219 |
+| baseline_post_squeeze | CON | 3 | -0.2019748 | 0.0594926 | 2469.797 | -0.3186354 | -0.0853143 |
+| relax | CON | 3 | -0.2334902 | 0.0440106 | 2464.845 | -0.3197917 | -0.1471886 |
+| baseline_pre_squeeze | MHC | 3 | 0.0001250 | 0.0520034 | 2461.111 | -0.1018499 | 0.1021000 |
+| squeeze | MHC | 3 | 0.3767380 | 0.0494636 | 2459.081 | 0.2797434 | 0.4737325 |
+| baseline_post_squeeze | MHC | 3 | -0.2617091 | 0.0617033 | 2465.401 | -0.3827047 | -0.1407135 |
+| relax | MHC | 3 | -0.1405188 | 0.0494636 | 2459.081 | -0.2375133 | -0.0435242 |
+| baseline_pre_squeeze | ASD | 4 | 0.1153306 | 0.0483014 | 2466.941 | 0.0206151 | 0.2100462 |
+| squeeze | ASD | 4 | 0.3491222 | 0.0448652 | 2464.845 | 0.2611448 | 0.4370997 |
+| baseline_post_squeeze | ASD | 4 | -0.2865538 | 0.0549452 | 2469.179 | -0.3942972 | -0.1788103 |
+| relax | ASD | 4 | -0.1370490 | 0.0448652 | 2464.845 | -0.2250264 | -0.0490715 |
+| baseline_pre_squeeze | CON | 4 | 0.0073071 | 0.0462454 | 2466.344 | -0.0833767 | 0.0979909 |
+| squeeze | CON | 4 | 0.4448092 | 0.0440106 | 2464.845 | 0.3585076 | 0.5311107 |
+| baseline_post_squeeze | CON | 4 | -0.1589905 | 0.0594926 | 2469.800 | -0.2756510 | -0.0423300 |
+| relax | CON | 4 | -0.1674230 | 0.0444317 | 2465.112 | -0.2545503 | -0.0802957 |
+| baseline_pre_squeeze | MHC | 4 | 0.0551458 | 0.0527021 | 2461.494 | -0.0481992 | 0.1584908 |
+| squeeze | MHC | 4 | 0.3390746 | 0.0494636 | 2459.081 | 0.2420800 | 0.4360691 |
+| baseline_post_squeeze | MHC | 4 | -0.2189812 | 0.0605899 | 2465.230 | -0.3377936 | -0.1001688 |
+| relax | MHC | 4 | -0.1806790 | 0.0500634 | 2459.676 | -0.2788498 | -0.0825081 |
+| baseline_pre_squeeze | ASD | 5 | 0.1465939 | 0.0483014 | 2466.953 | 0.0518784 | 0.2413094 |
+| squeeze | ASD | 5 | 0.2539920 | 0.0453116 | 2465.176 | 0.1651394 | 0.3428446 |
+| baseline_post_squeeze | ASD | 5 | -0.1726119 | 0.0557713 | 2469.315 | -0.2819753 | -0.0632485 |
+| relax | ASD | 5 | -0.1890774 | 0.0448652 | 2464.845 | -0.2770548 | -0.1010999 |
+| baseline_pre_squeeze | CON | 5 | 0.1172379 | 0.0500366 | 2468.073 | 0.0191199 | 0.2153560 |
+| squeeze | CON | 5 | 0.4285390 | 0.0440106 | 2464.845 | 0.3422374 | 0.5148405 |
+| baseline_post_squeeze | CON | 5 | -0.1411581 | 0.0616561 | 2469.928 | -0.2620609 | -0.0202552 |
+| relax | CON | 5 | -0.2423006 | 0.0440106 | 2464.845 | -0.3286022 | -0.1559991 |
+| baseline_pre_squeeze | MHC | 5 | 0.0267903 | 0.0527019 | 2461.685 | -0.0765542 | 0.1301348 |
+| squeeze | MHC | 5 | 0.2926584 | 0.0494636 | 2459.081 | 0.1956639 | 0.3896529 |
+| baseline_post_squeeze | MHC | 5 | -0.2394177 | 0.0716716 | 2469.200 | -0.3799603 | -0.0988752 |
+| relax | MHC | 5 | -0.1232570 | 0.0494636 | 2459.081 | -0.2202515 | -0.0262624 |
+
+Estimated Marginal Means: Trial Phase by Group and Manipulation Trial
 
 ### Post Hoc
 
 ``` r
-contrast(emmeans(lmm_trials_group, ~ trial_phase | group.y * manipulation_trial), "pairwise")
+# Compute EMMs for trial_phase within each group × manipulation_trial
+emm_nested <- emmeans(lmm_trials_group, ~ trial_phase | group.y * manipulation_trial)
+
+# Pairwise contrasts
+nested_contrasts <- contrast(emm_nested, "pairwise")
+knitr::kable(nested_contrasts, caption = "Pairwise Comparisons: Trial Phase by Group × Manipulation Trial")
 ```
 
-    ## group.y = ASD, manipulation_trial = 1:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.17810 0.0667 2351  -2.669
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.10624 0.0756 2384   1.406
-    ##  baseline_pre_squeeze - relax                  0.11912 0.0664 2353   1.793
-    ##  squeeze - baseline_post_squeeze               0.28434 0.0729 2380   3.899
-    ##  squeeze - relax                               0.29723 0.0634 2334   4.687
-    ##  baseline_post_squeeze - relax                 0.01289 0.0727 2381   0.177
-    ##  p.value
-    ##   0.0383
-    ##   0.4956
-    ##   0.2768
-    ##   0.0006
-    ##   <.0001
-    ##   0.9980
-    ## 
-    ## group.y = CON, manipulation_trial = 1:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.26486 0.0635 2343  -4.171
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.07543 0.0759 2390   0.994
-    ##  baseline_pre_squeeze - relax                  0.18188 0.0635 2343   2.864
-    ##  squeeze - baseline_post_squeeze               0.34029 0.0746 2393   4.564
-    ##  squeeze - relax                               0.44674 0.0619 2332   7.218
-    ##  baseline_post_squeeze - relax                 0.10645 0.0746 2393   1.428
-    ##  p.value
-    ##   0.0002
-    ##   0.7529
-    ##   0.0219
-    ##   <.0001
-    ##   <.0001
-    ##   0.4821
-    ## 
-    ## group.y = MHC, manipulation_trial = 1:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.18632 0.0736 2356  -2.533
-    ##  baseline_pre_squeeze - baseline_post_squeeze -0.06049 0.0900 2414  -0.672
-    ##  baseline_pre_squeeze - relax                  0.15657 0.0736 2356   2.129
-    ##  squeeze - baseline_post_squeeze               0.12583 0.0867 2404   1.451
-    ##  squeeze - relax                               0.34289 0.0695 2332   4.931
-    ##  baseline_post_squeeze - relax                 0.21706 0.0867 2404   2.502
-    ##  p.value
-    ##   0.0552
-    ##   0.9077
-    ##   0.1443
-    ##   0.4679
-    ##   <.0001
-    ##   0.0598
-    ## 
-    ## group.y = ASD, manipulation_trial = 2:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.34538 0.0641 2338  -5.389
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.25986 0.0703 2367   3.696
-    ##  baseline_pre_squeeze - relax                  0.15200 0.0641 2338   2.372
-    ##  squeeze - baseline_post_squeeze               0.60524 0.0694 2368   8.718
-    ##  squeeze - relax                               0.49738 0.0631 2332   7.883
-    ##  baseline_post_squeeze - relax                -0.10786 0.0694 2368  -1.554
-    ##  p.value
-    ##   <.0001
-    ##   0.0013
-    ##   0.0828
-    ##   <.0001
-    ##   <.0001
-    ##   0.4056
-    ## 
-    ## group.y = CON, manipulation_trial = 2:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.42022 0.0632 2341  -6.653
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.26195 0.0712 2379   3.679
-    ##  baseline_pre_squeeze - relax                  0.21821 0.0632 2341   3.455
-    ##  squeeze - baseline_post_squeeze               0.68218 0.0701 2377   9.732
-    ##  squeeze - relax                               0.63843 0.0619 2332  10.314
-    ##  baseline_post_squeeze - relax                -0.04375 0.0701 2377  -0.624
-    ##  p.value
-    ##   <.0001
-    ##   0.0014
-    ##   0.0031
-    ##   <.0001
-    ##   <.0001
-    ##   0.9244
-    ## 
-    ## group.y = MHC, manipulation_trial = 2:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.28625 0.0724 2349  -3.954
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.44673 0.0821 2385   5.440
-    ##  baseline_pre_squeeze - relax                  0.26377 0.0724 2349   3.643
-    ##  squeeze - baseline_post_squeeze               0.73297 0.0796 2381   9.206
-    ##  squeeze - relax                               0.55002 0.0695 2332   7.910
-    ##  baseline_post_squeeze - relax                -0.18296 0.0796 2381  -2.298
-    ##  p.value
-    ##   0.0005
-    ##   <.0001
-    ##   0.0016
-    ##   <.0001
-    ##   <.0001
-    ##   0.0988
-    ## 
-    ## group.y = ASD, manipulation_trial = 3:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.29476 0.0664 2353  -4.437
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.24637 0.0730 2382   3.374
-    ##  baseline_pre_squeeze - relax                  0.15504 0.0667 2355   2.323
-    ##  squeeze - baseline_post_squeeze               0.54113 0.0700 2370   7.729
-    ##  squeeze - relax                               0.44980 0.0634 2334   7.093
-    ##  baseline_post_squeeze - relax                -0.09133 0.0703 2369  -1.299
-    ##  p.value
-    ##   0.0001
-    ##   0.0042
-    ##   0.0930
-    ##   <.0001
-    ##   <.0001
-    ##   0.5634
-    ## 
-    ## group.y = CON, manipulation_trial = 3:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.40655 0.0628 2338  -6.471
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.24784 0.0745 2390   3.327
-    ##  baseline_pre_squeeze - relax                  0.27936 0.0628 2338   4.446
-    ##  squeeze - baseline_post_squeeze               0.65440 0.0737 2391   8.878
-    ##  squeeze - relax                               0.68591 0.0619 2332  11.082
-    ##  baseline_post_squeeze - relax                 0.03152 0.0737 2391   0.428
-    ##  p.value
-    ##   <.0001
-    ##   0.0049
-    ##   0.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.9738
-    ## 
-    ## group.y = MHC, manipulation_trial = 3:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.37661 0.0714 2343  -5.278
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.26183 0.0803 2381   3.261
-    ##  baseline_pre_squeeze - relax                  0.14064 0.0714 2343   1.971
-    ##  squeeze - baseline_post_squeeze               0.63845 0.0787 2378   8.113
-    ##  squeeze - relax                               0.51726 0.0695 2332   7.439
-    ##  baseline_post_squeeze - relax                -0.12119 0.0787 2378  -1.540
-    ##  p.value
-    ##   <.0001
-    ##   0.0062
-    ##   0.1993
-    ##   <.0001
-    ##   <.0001
-    ##   0.4136
-    ## 
-    ## group.y = ASD, manipulation_trial = 4:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.23379 0.0656 2348  -3.565
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.40188 0.0728 2374   5.518
-    ##  baseline_pre_squeeze - relax                  0.25238 0.0656 2348   3.848
-    ##  squeeze - baseline_post_squeeze               0.63568 0.0706 2373   9.001
-    ##  squeeze - relax                               0.48617 0.0631 2332   7.705
-    ##  baseline_post_squeeze - relax                -0.14950 0.0706 2373  -2.117
-    ##  p.value
-    ##   0.0021
-    ##   <.0001
-    ##   0.0007
-    ##   <.0001
-    ##   <.0001
-    ##   0.1479
-    ## 
-    ## group.y = CON, manipulation_trial = 4:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.43750 0.0635 2343  -6.889
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.16630 0.0751 2387   2.216
-    ##  baseline_pre_squeeze - relax                  0.17473 0.0638 2341   2.739
-    ##  squeeze - baseline_post_squeeze               0.60380 0.0737 2391   8.191
-    ##  squeeze - relax                               0.61223 0.0622 2334   9.844
-    ##  baseline_post_squeeze - relax                 0.00843 0.0740 2389   0.114
-    ##  p.value
-    ##   <.0001
-    ##   0.1192
-    ##   0.0315
-    ##   <.0001
-    ##   <.0001
-    ##   0.9995
-    ## 
-    ## group.y = MHC, manipulation_trial = 4:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.28393 0.0719 2346  -3.951
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.27413 0.0799 2386   3.430
-    ##  baseline_pre_squeeze - relax                  0.23582 0.0723 2349   3.263
-    ##  squeeze - baseline_post_squeeze               0.55806 0.0778 2374   7.171
-    ##  squeeze - relax                               0.51975 0.0700 2334   7.430
-    ##  baseline_post_squeeze - relax                -0.03830 0.0782 2378  -0.490
-    ##  p.value
-    ##   0.0005
-    ##   0.0034
-    ##   0.0062
-    ##   <.0001
-    ##   <.0001
-    ##   0.9614
-    ## 
-    ## group.y = ASD, manipulation_trial = 5:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.10740 0.0659 2346  -1.630
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.31921 0.0735 2377   4.345
-    ##  baseline_pre_squeeze - relax                  0.33567 0.0656 2348   5.118
-    ##  squeeze - baseline_post_squeeze               0.42660 0.0716 2379   5.962
-    ##  squeeze - relax                               0.44307 0.0634 2334   6.987
-    ##  baseline_post_squeeze - relax                 0.01647 0.0713 2376   0.231
-    ##  p.value
-    ##   0.3618
-    ##   0.0001
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.9957
-    ## 
-    ## group.y = CON, manipulation_trial = 5:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.31130 0.0663 2359  -4.694
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.25840 0.0791 2396   3.266
-    ##  baseline_pre_squeeze - relax                  0.35954 0.0663 2359   5.422
-    ##  squeeze - baseline_post_squeeze               0.56970 0.0755 2396   7.549
-    ##  squeeze - relax                               0.67084 0.0619 2332  10.838
-    ##  baseline_post_squeeze - relax                 0.10114 0.0755 2396   1.340
-    ##  p.value
-    ##   <.0001
-    ##   0.0061
-    ##   <.0001
-    ##   <.0001
-    ##   <.0001
-    ##   0.5373
-    ## 
-    ## group.y = MHC, manipulation_trial = 5:
-    ##  contrast                                     estimate     SE   df t.ratio
-    ##  baseline_pre_squeeze - squeeze               -0.26587 0.0719 2346  -3.699
-    ##  baseline_pre_squeeze - baseline_post_squeeze  0.26621 0.0887 2416   3.003
-    ##  baseline_pre_squeeze - relax                  0.15005 0.0719 2346   2.088
-    ##  squeeze - baseline_post_squeeze               0.53208 0.0867 2403   6.134
-    ##  squeeze - relax                               0.41592 0.0695 2332   5.982
-    ##  baseline_post_squeeze - relax                -0.11616 0.0867 2403  -1.339
-    ##  p.value
-    ##   0.0013
-    ##   0.0144
-    ##   0.1573
-    ##   <.0001
-    ##   <.0001
-    ##   0.5380
-    ## 
-    ## Degrees-of-freedom method: kenward-roger 
-    ## P value adjustment: tukey method for comparing a family of 4 estimates
+| contrast | group.y | manipulation_trial | estimate | SE | df | t.ratio | p.value |
+|:---|:---|:---|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze - squeeze | ASD | 1 | -0.1781012 | 0.0667229 | 2350.643 | -2.6692658 | 0.0383210 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 1 | 0.1062372 | 0.0755530 | 2384.363 | 1.4061283 | 0.4955744 |
+| baseline_pre_squeeze - relax | ASD | 1 | 0.1191241 | 0.0664271 | 2352.740 | 1.7933043 | 0.2767529 |
+| squeeze - baseline_post_squeeze | ASD | 1 | 0.2843383 | 0.0729310 | 2379.582 | 3.8987326 | 0.0005751 |
+| squeeze - relax | ASD | 1 | 0.2972253 | 0.0634162 | 2333.844 | 4.6868951 | 0.0000174 |
+| baseline_post_squeeze - relax | ASD | 1 | 0.0128869 | 0.0726605 | 2381.328 | 0.1773579 | 0.9980191 |
+| baseline_pre_squeeze - squeeze | CON | 1 | -0.2648630 | 0.0635046 | 2342.764 | -4.1707671 | 0.0001843 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 1 | 0.0754279 | 0.0758877 | 2389.669 | 0.9939413 | 0.7529013 |
+| baseline_pre_squeeze - relax | CON | 1 | 0.1818774 | 0.0635046 | 2342.764 | 2.8640021 | 0.0219317 |
+| squeeze - baseline_post_squeeze | CON | 1 | 0.3402909 | 0.0745649 | 2393.052 | 4.5636865 | 0.0000313 |
+| squeeze - relax | CON | 1 | 0.4467404 | 0.0618961 | 2331.570 | 7.2175805 | 0.0000000 |
+| baseline_post_squeeze - relax | CON | 1 | 0.1064495 | 0.0745649 | 2393.052 | 1.4276082 | 0.4821303 |
+| baseline_pre_squeeze - squeeze | MHC | 1 | -0.1863202 | 0.0735560 | 2356.271 | -2.5330386 | 0.0552247 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 1 | -0.0604928 | 0.0900168 | 2414.383 | -0.6720170 | 0.9076817 |
+| baseline_pre_squeeze - relax | MHC | 1 | 0.1565665 | 0.0735560 | 2356.271 | 2.1285344 | 0.1443361 |
+| squeeze - baseline_post_squeeze | MHC | 1 | 0.1258274 | 0.0867451 | 2403.592 | 1.4505419 | 0.4678850 |
+| squeeze - relax | MHC | 1 | 0.3428867 | 0.0695307 | 2331.570 | 4.9314398 | 0.0000052 |
+| baseline_post_squeeze - relax | MHC | 1 | 0.2170593 | 0.0867451 | 2403.592 | 2.5022659 | 0.0597989 |
+| baseline_pre_squeeze - squeeze | ASD | 2 | -0.3453802 | 0.0640869 | 2338.310 | -5.3892456 | 0.0000005 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 2 | 0.2598582 | 0.0703145 | 2366.880 | 3.6956547 | 0.0012822 |
+| baseline_pre_squeeze - relax | ASD | 2 | 0.1520003 | 0.0640869 | 2338.310 | 2.3717825 | 0.0828443 |
+| squeeze - baseline_post_squeeze | ASD | 2 | 0.6052385 | 0.0694247 | 2367.908 | 8.7179168 | 0.0000000 |
+| squeeze - relax | ASD | 2 | 0.4973805 | 0.0630981 | 2331.570 | 7.8826517 | 0.0000000 |
+| baseline_post_squeeze - relax | ASD | 2 | -0.1078580 | 0.0694247 | 2367.908 | -1.5535972 | 0.4056434 |
+| baseline_pre_squeeze - squeeze | CON | 2 | -0.4202209 | 0.0631602 | 2340.724 | -6.6532536 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 2 | 0.2619548 | 0.0712075 | 2379.339 | 3.6787521 | 0.0013679 |
+| baseline_pre_squeeze - relax | CON | 2 | 0.2182057 | 0.0631602 | 2340.724 | 3.4547962 | 0.0031432 |
+| squeeze - baseline_post_squeeze | CON | 2 | 0.6821758 | 0.0700941 | 2377.274 | 9.7322800 | 0.0000000 |
+| squeeze - relax | CON | 2 | 0.6384266 | 0.0618961 | 2331.570 | 10.3144810 | 0.0000000 |
+| baseline_post_squeeze - relax | CON | 2 | -0.0437492 | 0.0700941 | 2377.274 | -0.6241488 | 0.9243542 |
+| baseline_pre_squeeze - squeeze | MHC | 2 | -0.2862468 | 0.0724004 | 2348.696 | -3.9536620 | 0.0004599 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 2 | 0.4467267 | 0.0821229 | 2385.393 | 5.4397346 | 0.0000004 |
+| baseline_pre_squeeze - relax | MHC | 2 | 0.2637712 | 0.0724004 | 2348.696 | 3.6432278 | 0.0015666 |
+| squeeze - baseline_post_squeeze | MHC | 2 | 0.7329735 | 0.0796175 | 2381.373 | 9.2061908 | 0.0000000 |
+| squeeze - relax | MHC | 2 | 0.5500181 | 0.0695307 | 2331.570 | 7.9104298 | 0.0000000 |
+| baseline_post_squeeze - relax | MHC | 2 | -0.1829554 | 0.0796175 | 2381.373 | -2.2979309 | 0.0987620 |
+| baseline_pre_squeeze - squeeze | ASD | 3 | -0.2947598 | 0.0664272 | 2352.850 | -4.4373384 | 0.0000563 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 3 | 0.2463681 | 0.0730216 | 2382.125 | 3.3739078 | 0.0041899 |
+| baseline_pre_squeeze - relax | ASD | 3 | 0.1550401 | 0.0667308 | 2355.479 | 2.3233651 | 0.0930285 |
+| squeeze - baseline_post_squeeze | ASD | 3 | 0.5411280 | 0.0700087 | 2370.475 | 7.7294350 | 0.0000000 |
+| squeeze - relax | ASD | 3 | 0.4497999 | 0.0634163 | 2333.887 | 7.0928183 | 0.0000000 |
+| baseline_post_squeeze - relax | ASD | 3 | -0.0913280 | 0.0702894 | 2368.537 | -1.2993142 | 0.5634288 |
+| baseline_pre_squeeze - squeeze | CON | 3 | -0.4065509 | 0.0628276 | 2338.056 | -6.4708962 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 3 | 0.2478442 | 0.0744901 | 2390.241 | 3.3272118 | 0.0049314 |
+| baseline_pre_squeeze - relax | CON | 3 | 0.2793596 | 0.0628276 | 2338.056 | 4.4464461 | 0.0000540 |
+| squeeze - baseline_post_squeeze | CON | 3 | 0.6543952 | 0.0737128 | 2390.577 | 8.8776382 | 0.0000000 |
+| squeeze - relax | CON | 3 | 0.6859105 | 0.0618961 | 2331.570 | 11.0816354 | 0.0000000 |
+| baseline_post_squeeze - relax | CON | 3 | 0.0315153 | 0.0737128 | 2390.577 | 0.4275424 | 0.9737703 |
+| baseline_pre_squeeze - squeeze | MHC | 3 | -0.3766129 | 0.0713565 | 2342.879 | -5.2779028 | 0.0000009 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 3 | 0.2618341 | 0.0803020 | 2380.535 | 3.2606167 | 0.0061979 |
+| baseline_pre_squeeze - relax | MHC | 3 | 0.1406438 | 0.0713565 | 2342.879 | 1.9710006 | 0.1992896 |
+| squeeze - baseline_post_squeeze | MHC | 3 | 0.6384470 | 0.0786933 | 2378.180 | 8.1131031 | 0.0000000 |
+| squeeze - relax | MHC | 3 | 0.5172567 | 0.0695307 | 2331.570 | 7.4392518 | 0.0000000 |
+| baseline_post_squeeze - relax | MHC | 3 | -0.1211903 | 0.0786933 | 2378.180 | -1.5400331 | 0.4136448 |
+| baseline_pre_squeeze - squeeze | ASD | 4 | -0.2337916 | 0.0655859 | 2348.092 | -3.5646623 | 0.0021036 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 4 | 0.4018844 | 0.0728362 | 2373.850 | 5.5176425 | 0.0000002 |
+| baseline_pre_squeeze - relax | ASD | 4 | 0.2523796 | 0.0655859 | 2348.092 | 3.8480762 | 0.0007053 |
+| squeeze - baseline_post_squeeze | ASD | 4 | 0.6356760 | 0.0706219 | 2373.172 | 9.0011114 | 0.0000000 |
+| squeeze - relax | ASD | 4 | 0.4861712 | 0.0630981 | 2331.570 | 7.7050026 | 0.0000000 |
+| baseline_post_squeeze - relax | ASD | 4 | -0.1495048 | 0.0706219 | 2373.172 | -2.1169737 | 0.1479391 |
+| baseline_pre_squeeze - squeeze | CON | 4 | -0.4375021 | 0.0635046 | 2342.769 | -6.8892960 | 0.0000000 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 4 | 0.1662976 | 0.0750501 | 2386.865 | 2.2158211 | 0.1191980 |
+| baseline_pre_squeeze - relax | CON | 4 | 0.1747301 | 0.0637908 | 2340.528 | 2.7391094 | 0.0315213 |
+| squeeze - baseline_post_squeeze | CON | 4 | 0.6037997 | 0.0737127 | 2390.532 | 8.1912540 | 0.0000000 |
+| squeeze - relax | CON | 4 | 0.6122322 | 0.0621963 | 2333.888 | 9.8435530 | 0.0000000 |
+| baseline_post_squeeze - relax | CON | 4 | 0.0084325 | 0.0739595 | 2388.897 | 0.1140146 | 0.9994701 |
+| baseline_pre_squeeze - squeeze | MHC | 4 | -0.2839288 | 0.0718663 | 2345.946 | -3.9507899 | 0.0004653 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 4 | 0.2741270 | 0.0799258 | 2385.895 | 3.4297672 | 0.0034373 |
+| baseline_pre_squeeze - relax | MHC | 4 | 0.2358248 | 0.0722809 | 2348.826 | 3.2626164 | 0.0061570 |
+| squeeze - baseline_post_squeeze | MHC | 4 | 0.5580558 | 0.0778251 | 2374.416 | 7.1706401 | 0.0000000 |
+| squeeze - relax | MHC | 4 | 0.5197535 | 0.0699580 | 2334.238 | 7.4295106 | 0.0000000 |
+| baseline_post_squeeze - relax | MHC | 4 | -0.0383022 | 0.0782108 | 2377.635 | -0.4897309 | 0.9614002 |
+| baseline_pre_squeeze - squeeze | ASD | 5 | -0.1073981 | 0.0658854 | 2345.912 | -1.6300736 | 0.3618083 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 5 | 0.3192058 | 0.0734624 | 2377.048 | 4.3451563 | 0.0000854 |
+| baseline_pre_squeeze - relax | ASD | 5 | 0.3356712 | 0.0655859 | 2348.054 | 5.1180400 | 0.0000020 |
+| squeeze - baseline_post_squeeze | ASD | 5 | 0.4266039 | 0.0715517 | 2378.807 | 5.9621772 | 0.0000000 |
+| squeeze - relax | ASD | 5 | 0.4430694 | 0.0634162 | 2333.845 | 6.9866864 | 0.0000000 |
+| baseline_post_squeeze - relax | ASD | 5 | 0.0164655 | 0.0712666 | 2375.916 | 0.2310405 | 0.9956567 |
+| baseline_pre_squeeze - squeeze | CON | 5 | -0.3113010 | 0.0663164 | 2359.370 | -4.6941807 | 0.0000168 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 5 | 0.2583960 | 0.0791087 | 2395.590 | 3.2663389 | 0.0060780 |
+| baseline_pre_squeeze - relax | CON | 5 | 0.3595386 | 0.0663164 | 2359.370 | 5.4215653 | 0.0000004 |
+| squeeze - baseline_post_squeeze | CON | 5 | 0.5696970 | 0.0754697 | 2395.839 | 7.5486899 | 0.0000000 |
+| squeeze - relax | CON | 5 | 0.6708396 | 0.0618961 | 2331.570 | 10.8381487 | 0.0000000 |
+| baseline_post_squeeze - relax | CON | 5 | 0.1011426 | 0.0754697 | 2395.839 | 1.3401752 | 0.5373280 |
+| baseline_pre_squeeze - squeeze | MHC | 5 | -0.2658681 | 0.0718662 | 2345.642 | -3.6994867 | 0.0012636 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 5 | 0.2662080 | 0.0886535 | 2416.227 | 3.0027910 | 0.0143629 |
+| baseline_pre_squeeze - relax | MHC | 5 | 0.1500473 | 0.0718662 | 2345.642 | 2.0878695 | 0.1573130 |
+| squeeze - baseline_post_squeeze | MHC | 5 | 0.5320761 | 0.0867435 | 2403.140 | 6.1339047 | 0.0000000 |
+| squeeze - relax | MHC | 5 | 0.4159154 | 0.0695307 | 2331.570 | 5.9817477 | 0.0000000 |
+| baseline_post_squeeze - relax | MHC | 5 | -0.1161608 | 0.0867435 | 2403.140 | -1.3391298 | 0.5379939 |
+
+Pairwise Comparisons: Trial Phase by Group × Manipulation Trial
 
 ``` r
-confint(contrast(emmeans(lmm_trials_group, ~ trial_phase | group.y * manipulation_trial), "pairwise"))
+# Confidence intervals for those contrasts
+nested_contrasts_ci <- confint(nested_contrasts)
+knitr::kable(nested_contrasts_ci, caption = "95% CIs for Trial Phase Comparisons by Group × Manipulation Trial")
 ```
 
-<div data-pagedtable="false">
+| contrast | group.y | manipulation_trial | estimate | SE | df | lower.CL | upper.CL |
+|:---|:---|:---|---:|---:|---:|---:|---:|
+| baseline_pre_squeeze - squeeze | ASD | 1 | -0.1781012 | 0.0667229 | 2350.643 | -0.3496371 | -0.0065652 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 1 | 0.1062372 | 0.0755530 | 2384.363 | -0.0879977 | 0.3004721 |
+| baseline_pre_squeeze - relax | ASD | 1 | 0.1191241 | 0.0664271 | 2352.740 | -0.0516514 | 0.2898995 |
+| squeeze - baseline_post_squeeze | ASD | 1 | 0.2843383 | 0.0729310 | 2379.582 | 0.0968439 | 0.4718328 |
+| squeeze - relax | ASD | 1 | 0.2972253 | 0.0634162 | 2333.844 | 0.1341895 | 0.4602610 |
+| baseline_post_squeeze - relax | ASD | 1 | 0.0128869 | 0.0726605 | 2381.328 | -0.1739120 | 0.1996858 |
+| baseline_pre_squeeze - squeeze | CON | 1 | -0.2648630 | 0.0635046 | 2342.764 | -0.4281255 | -0.1016005 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 1 | 0.0754279 | 0.0758877 | 2389.669 | -0.1196672 | 0.2705230 |
+| baseline_pre_squeeze - relax | CON | 1 | 0.1818774 | 0.0635046 | 2342.764 | 0.0186148 | 0.3451399 |
+| squeeze - baseline_post_squeeze | CON | 1 | 0.3402909 | 0.0745649 | 2393.052 | 0.1485966 | 0.5319852 |
+| squeeze - relax | CON | 1 | 0.4467404 | 0.0618961 | 2331.570 | 0.2876125 | 0.6058683 |
+| baseline_post_squeeze - relax | CON | 1 | 0.1064495 | 0.0745649 | 2393.052 | -0.0852448 | 0.2981438 |
+| baseline_pre_squeeze - squeeze | MHC | 1 | -0.1863202 | 0.0735560 | 2356.271 | -0.3754228 | 0.0027824 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 1 | -0.0604928 | 0.0900168 | 2414.383 | -0.2919099 | 0.1709243 |
+| baseline_pre_squeeze - relax | MHC | 1 | 0.1565665 | 0.0735560 | 2356.271 | -0.0325361 | 0.3456691 |
+| squeeze - baseline_post_squeeze | MHC | 1 | 0.1258274 | 0.0867451 | 2403.592 | -0.0971795 | 0.3488342 |
+| squeeze - relax | MHC | 1 | 0.3428867 | 0.0695307 | 2331.570 | 0.1641311 | 0.5216422 |
+| baseline_post_squeeze - relax | MHC | 1 | 0.2170593 | 0.0867451 | 2403.592 | -0.0059476 | 0.4400661 |
+| baseline_pre_squeeze - squeeze | ASD | 2 | -0.3453802 | 0.0640869 | 2338.310 | -0.5101401 | -0.1806204 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 2 | 0.2598582 | 0.0703145 | 2366.880 | 0.0790896 | 0.4406269 |
+| baseline_pre_squeeze - relax | ASD | 2 | 0.1520003 | 0.0640869 | 2338.310 | -0.0127595 | 0.3167601 |
+| squeeze - baseline_post_squeeze | ASD | 2 | 0.6052385 | 0.0694247 | 2367.908 | 0.4267576 | 0.7837194 |
+| squeeze - relax | ASD | 2 | 0.4973805 | 0.0630981 | 2331.570 | 0.3351625 | 0.6595985 |
+| baseline_post_squeeze - relax | ASD | 2 | -0.1078580 | 0.0694247 | 2367.908 | -0.2863389 | 0.0706229 |
+| baseline_pre_squeeze - squeeze | CON | 2 | -0.4202209 | 0.0631602 | 2340.724 | -0.5825981 | -0.2578437 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 2 | 0.2619548 | 0.0712075 | 2379.339 | 0.0788911 | 0.4450186 |
+| baseline_pre_squeeze - relax | CON | 2 | 0.2182057 | 0.0631602 | 2340.724 | 0.0558285 | 0.3805829 |
+| squeeze - baseline_post_squeeze | CON | 2 | 0.6821758 | 0.0700941 | 2377.274 | 0.5019743 | 0.8623772 |
+| squeeze - relax | CON | 2 | 0.6384266 | 0.0618961 | 2331.570 | 0.4792987 | 0.7975545 |
+| baseline_post_squeeze - relax | CON | 2 | -0.0437492 | 0.0700941 | 2377.274 | -0.2239506 | 0.1364523 |
+| baseline_pre_squeeze - squeeze | MHC | 2 | -0.2862468 | 0.0724004 | 2348.696 | -0.4723790 | -0.1001146 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 2 | 0.4467267 | 0.0821229 | 2385.393 | 0.2356016 | 0.6578517 |
+| baseline_pre_squeeze - relax | MHC | 2 | 0.2637712 | 0.0724004 | 2348.696 | 0.0776390 | 0.4499035 |
+| squeeze - baseline_post_squeeze | MHC | 2 | 0.7329735 | 0.0796175 | 2381.373 | 0.5282892 | 0.9376577 |
+| squeeze - relax | MHC | 2 | 0.5500181 | 0.0695307 | 2331.570 | 0.3712625 | 0.7287736 |
+| baseline_post_squeeze - relax | MHC | 2 | -0.1829554 | 0.0796175 | 2381.373 | -0.3876397 | 0.0217288 |
+| baseline_pre_squeeze - squeeze | ASD | 3 | -0.2947598 | 0.0664272 | 2352.850 | -0.4655354 | -0.1239843 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 3 | 0.2463681 | 0.0730216 | 2382.125 | 0.0586409 | 0.4340954 |
+| baseline_pre_squeeze - relax | ASD | 3 | 0.1550401 | 0.0667308 | 2355.479 | -0.0165160 | 0.3265962 |
+| squeeze - baseline_post_squeeze | ASD | 3 | 0.5411280 | 0.0700087 | 2370.475 | 0.3611457 | 0.7211103 |
+| squeeze - relax | ASD | 3 | 0.4497999 | 0.0634163 | 2333.887 | 0.2867642 | 0.6128357 |
+| baseline_post_squeeze - relax | ASD | 3 | -0.0913280 | 0.0702894 | 2368.537 | -0.2720321 | 0.0893760 |
+| baseline_pre_squeeze - squeeze | CON | 3 | -0.4065509 | 0.0628276 | 2338.056 | -0.5680732 | -0.2450287 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 3 | 0.2478442 | 0.0744901 | 2390.241 | 0.0563422 | 0.4393463 |
+| baseline_pre_squeeze - relax | CON | 3 | 0.2793596 | 0.0628276 | 2338.056 | 0.1178373 | 0.4408818 |
+| squeeze - baseline_post_squeeze | CON | 3 | 0.6543952 | 0.0737128 | 2390.577 | 0.4648915 | 0.8438988 |
+| squeeze - relax | CON | 3 | 0.6859105 | 0.0618961 | 2331.570 | 0.5267826 | 0.8450384 |
+| baseline_post_squeeze - relax | CON | 3 | 0.0315153 | 0.0737128 | 2390.577 | -0.1579883 | 0.2210190 |
+| baseline_pre_squeeze - squeeze | MHC | 3 | -0.3766129 | 0.0713565 | 2342.879 | -0.5600618 | -0.1931641 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 3 | 0.2618341 | 0.0803020 | 2380.535 | 0.0553899 | 0.4682783 |
+| baseline_pre_squeeze - relax | MHC | 3 | 0.1406438 | 0.0713565 | 2342.879 | -0.0428051 | 0.3240926 |
+| squeeze - baseline_post_squeeze | MHC | 3 | 0.6384470 | 0.0786933 | 2378.180 | 0.4361384 | 0.8407557 |
+| squeeze - relax | MHC | 3 | 0.5172567 | 0.0695307 | 2331.570 | 0.3385011 | 0.6960123 |
+| baseline_post_squeeze - relax | MHC | 3 | -0.1211903 | 0.0786933 | 2378.180 | -0.3234990 | 0.0811183 |
+| baseline_pre_squeeze - squeeze | ASD | 4 | -0.2337916 | 0.0655859 | 2348.092 | -0.4024046 | -0.0651786 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 4 | 0.4018844 | 0.0728362 | 2373.850 | 0.2146332 | 0.5891356 |
+| baseline_pre_squeeze - relax | ASD | 4 | 0.2523796 | 0.0655859 | 2348.092 | 0.0837666 | 0.4209926 |
+| squeeze - baseline_post_squeeze | ASD | 4 | 0.6356760 | 0.0706219 | 2373.172 | 0.4541174 | 0.8172346 |
+| squeeze - relax | ASD | 4 | 0.4861712 | 0.0630981 | 2331.570 | 0.3239532 | 0.6483892 |
+| baseline_post_squeeze - relax | ASD | 4 | -0.1495048 | 0.0706219 | 2373.172 | -0.3310634 | 0.0320538 |
+| baseline_pre_squeeze - squeeze | CON | 4 | -0.4375021 | 0.0635046 | 2342.769 | -0.6007646 | -0.2742396 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 4 | 0.1662976 | 0.0750501 | 2386.865 | -0.0266444 | 0.3592396 |
+| baseline_pre_squeeze - relax | CON | 4 | 0.1747301 | 0.0637908 | 2340.528 | 0.0107316 | 0.3387285 |
+| squeeze - baseline_post_squeeze | CON | 4 | 0.6037997 | 0.0737127 | 2390.532 | 0.4142961 | 0.7933033 |
+| squeeze - relax | CON | 4 | 0.6122322 | 0.0621963 | 2333.888 | 0.4523328 | 0.7721315 |
+| baseline_post_squeeze - relax | CON | 4 | 0.0084325 | 0.0739595 | 2388.897 | -0.1817055 | 0.1985704 |
+| baseline_pre_squeeze - squeeze | MHC | 4 | -0.2839288 | 0.0718663 | 2345.946 | -0.4686881 | -0.0991695 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 4 | 0.2741270 | 0.0799258 | 2385.895 | 0.0686502 | 0.4796038 |
+| baseline_pre_squeeze - relax | MHC | 4 | 0.2358248 | 0.0722809 | 2348.826 | 0.0499999 | 0.4216496 |
+| squeeze - baseline_post_squeeze | MHC | 4 | 0.5580558 | 0.0778251 | 2374.416 | 0.3579790 | 0.7581326 |
+| squeeze - relax | MHC | 4 | 0.5197535 | 0.0699580 | 2334.238 | 0.3398998 | 0.6996073 |
+| baseline_post_squeeze - relax | MHC | 4 | -0.0383022 | 0.0782108 | 2377.635 | -0.2393704 | 0.1627659 |
+| baseline_pre_squeeze - squeeze | ASD | 5 | -0.1073981 | 0.0658854 | 2345.912 | -0.2767813 | 0.0619850 |
+| baseline_pre_squeeze - baseline_post_squeeze | ASD | 5 | 0.3192058 | 0.0734624 | 2377.048 | 0.1303449 | 0.5080667 |
+| baseline_pre_squeeze - relax | ASD | 5 | 0.3356712 | 0.0655859 | 2348.054 | 0.1670583 | 0.5042842 |
+| squeeze - baseline_post_squeeze | ASD | 5 | 0.4266039 | 0.0715517 | 2378.807 | 0.2426553 | 0.6105525 |
+| squeeze - relax | ASD | 5 | 0.4430694 | 0.0634162 | 2333.845 | 0.2800336 | 0.6061051 |
+| baseline_post_squeeze - relax | ASD | 5 | 0.0164655 | 0.0712666 | 2375.916 | -0.1667502 | 0.1996812 |
+| baseline_pre_squeeze - squeeze | CON | 5 | -0.3113010 | 0.0663164 | 2359.370 | -0.4817914 | -0.1408107 |
+| baseline_pre_squeeze - baseline_post_squeeze | CON | 5 | 0.2583960 | 0.0791087 | 2395.590 | 0.0550204 | 0.4617716 |
+| baseline_pre_squeeze - relax | CON | 5 | 0.3595386 | 0.0663164 | 2359.370 | 0.1890482 | 0.5300289 |
+| squeeze - baseline_post_squeeze | CON | 5 | 0.5696970 | 0.0754697 | 2395.839 | 0.3756770 | 0.7637171 |
+| squeeze - relax | CON | 5 | 0.6708396 | 0.0618961 | 2331.570 | 0.5117117 | 0.8299675 |
+| baseline_post_squeeze - relax | CON | 5 | 0.1011426 | 0.0754697 | 2395.839 | -0.0928775 | 0.2951626 |
+| baseline_pre_squeeze - squeeze | MHC | 5 | -0.2658681 | 0.0718662 | 2345.642 | -0.4506271 | -0.0811091 |
+| baseline_pre_squeeze - baseline_post_squeeze | MHC | 5 | 0.2662080 | 0.0886535 | 2416.227 | 0.0382957 | 0.4941203 |
+| baseline_pre_squeeze - relax | MHC | 5 | 0.1500473 | 0.0718662 | 2345.642 | -0.0347117 | 0.3348062 |
+| squeeze - baseline_post_squeeze | MHC | 5 | 0.5320761 | 0.0867435 | 2403.140 | 0.3090734 | 0.7550788 |
+| squeeze - relax | MHC | 5 | 0.4159154 | 0.0695307 | 2331.570 | 0.2371598 | 0.5946709 |
+| baseline_post_squeeze - relax | MHC | 5 | -0.1161608 | 0.0867435 | 2403.140 | -0.3391634 | 0.1068419 |
 
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["contrast"],"name":[1],"type":["fct"],"align":["left"]},{"label":["group.y"],"name":[2],"type":["fct"],"align":["left"]},{"label":["manipulation_trial"],"name":[3],"type":["fct"],"align":["left"]},{"label":["estimate"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["SE"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["df"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["lower.CL"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["upper.CL"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"baseline_pre_squeeze - squeeze","2":"ASD","3":"1","4":"-0.178101184","5":"0.06672291","6":"2350.643","7":"-0.349637121","8":"-0.006565246","_rn_":"1"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"ASD","3":"1","4":"0.106237164","5":"0.07555297","6":"2384.363","7":"-0.087997743","8":"0.300472071","_rn_":"2"},{"1":"baseline_pre_squeeze - relax","2":"ASD","3":"1","4":"0.119124072","5":"0.06642714","6":"2352.740","7":"-0.051651369","8":"0.289899513","_rn_":"3"},{"1":"squeeze - baseline_post_squeeze","2":"ASD","3":"1","4":"0.284338348","5":"0.07293097","6":"2379.582","7":"0.096843928","8":"0.471832767","_rn_":"4"},{"1":"squeeze - relax","2":"ASD","3":"1","4":"0.297225256","5":"0.06341624","6":"2333.844","7":"0.134189504","8":"0.460261007","_rn_":"5"},{"1":"baseline_post_squeeze - relax","2":"ASD","3":"1","4":"0.012886908","5":"0.07266047","6":"2381.328","7":"-0.173912002","8":"0.199685818","_rn_":"6"},{"1":"baseline_pre_squeeze - squeeze","2":"CON","3":"1","4":"-0.264863005","5":"0.06350463","6":"2342.764","7":"-0.428125544","8":"-0.101600465","_rn_":"7"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"CON","3":"1","4":"0.075427893","5":"0.07588767","6":"2389.669","7":"-0.119667180","8":"0.270522967","_rn_":"8"},{"1":"baseline_pre_squeeze - relax","2":"CON","3":"1","4":"0.181877381","5":"0.06350463","6":"2342.764","7":"0.018614841","8":"0.345139921","_rn_":"9"},{"1":"squeeze - baseline_post_squeeze","2":"CON","3":"1","4":"0.340290898","5":"0.07456492","6":"2393.052","7":"0.148596614","8":"0.531985182","_rn_":"10"},{"1":"squeeze - relax","2":"CON","3":"1","4":"0.446740386","5":"0.06189614","6":"2331.570","7":"0.287612510","8":"0.605868261","_rn_":"11"},{"1":"baseline_post_squeeze - relax","2":"CON","3":"1","4":"0.106449488","5":"0.07456492","6":"2393.052","7":"-0.085244796","8":"0.298143772","_rn_":"12"},{"1":"baseline_pre_squeeze - squeeze","2":"MHC","3":"1","4":"-0.186320192","5":"0.07355600","6":"2356.271","7":"-0.375422801","8":"0.002782417","_rn_":"13"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"MHC","3":"1","4":"-0.060492801","5":"0.09001677","6":"2414.383","7":"-0.291909861","8":"0.170924259","_rn_":"14"},{"1":"baseline_pre_squeeze - relax","2":"MHC","3":"1","4":"0.156566481","5":"0.07355600","6":"2356.271","7":"-0.032536128","8":"0.345669090","_rn_":"15"},{"1":"squeeze - baseline_post_squeeze","2":"MHC","3":"1","4":"0.125827391","5":"0.08674509","6":"2403.592","7":"-0.097179458","8":"0.348834240","_rn_":"16"},{"1":"squeeze - relax","2":"MHC","3":"1","4":"0.342886673","5":"0.06953074","6":"2331.570","7":"0.164131115","8":"0.521642231","_rn_":"17"},{"1":"baseline_post_squeeze - relax","2":"MHC","3":"1","4":"0.217059282","5":"0.08674509","6":"2403.592","7":"-0.005947567","8":"0.440066131","_rn_":"18"},{"1":"baseline_pre_squeeze - squeeze","2":"ASD","3":"2","4":"-0.345380241","5":"0.06408694","6":"2338.310","7":"-0.510140054","8":"-0.180620427","_rn_":"19"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"ASD","3":"2","4":"0.259858245","5":"0.07031454","6":"2366.880","7":"0.079089590","8":"0.440626901","_rn_":"20"},{"1":"baseline_pre_squeeze - relax","2":"ASD","3":"2","4":"0.152000272","5":"0.06408694","6":"2338.310","7":"-0.012759542","8":"0.316760085","_rn_":"21"},{"1":"squeeze - baseline_post_squeeze","2":"ASD","3":"2","4":"0.605238486","5":"0.06942467","6":"2367.908","7":"0.426757609","8":"0.783719363","_rn_":"22"},{"1":"squeeze - relax","2":"ASD","3":"2","4":"0.497380512","5":"0.06309812","6":"2331.570","7":"0.335162487","8":"0.659598538","_rn_":"23"},{"1":"baseline_post_squeeze - relax","2":"ASD","3":"2","4":"-0.107857974","5":"0.06942467","6":"2367.908","7":"-0.286338851","8":"0.070622904","_rn_":"24"},{"1":"baseline_pre_squeeze - squeeze","2":"CON","3":"2","4":"-0.420220919","5":"0.06316021","6":"2340.724","7":"-0.582598119","8":"-0.257843719","_rn_":"25"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"CON","3":"2","4":"0.261954836","5":"0.07120753","6":"2379.339","7":"0.078891111","8":"0.445018561","_rn_":"26"},{"1":"baseline_pre_squeeze - relax","2":"CON","3":"2","4":"0.218205664","5":"0.06316021","6":"2340.724","7":"0.055828464","8":"0.380582864","_rn_":"27"},{"1":"squeeze - baseline_post_squeeze","2":"CON","3":"2","4":"0.682175755","5":"0.07009414","6":"2377.274","7":"0.501974278","8":"0.862377232","_rn_":"28"},{"1":"squeeze - relax","2":"CON","3":"2","4":"0.638426583","5":"0.06189614","6":"2331.570","7":"0.479298708","8":"0.797554459","_rn_":"29"},{"1":"baseline_post_squeeze - relax","2":"CON","3":"2","4":"-0.043749172","5":"0.07009414","6":"2377.274","7":"-0.223950649","8":"0.136452305","_rn_":"30"},{"1":"baseline_pre_squeeze - squeeze","2":"MHC","3":"2","4":"-0.286246817","5":"0.07240043","6":"2348.696","7":"-0.472379024","8":"-0.100114611","_rn_":"31"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"MHC","3":"2","4":"0.446726656","5":"0.08212288","6":"2385.393","7":"0.235601602","8":"0.657851711","_rn_":"32"},{"1":"baseline_pre_squeeze - relax","2":"MHC","3":"2","4":"0.263771244","5":"0.07240043","6":"2348.696","7":"0.077639038","8":"0.449903451","_rn_":"33"},{"1":"squeeze - baseline_post_squeeze","2":"MHC","3":"2","4":"0.732973474","5":"0.07961745","6":"2381.373","7":"0.528289227","8":"0.937657720","_rn_":"34"},{"1":"squeeze - relax","2":"MHC","3":"2","4":"0.550018061","5":"0.06953074","6":"2331.570","7":"0.371262503","8":"0.728773619","_rn_":"35"},{"1":"baseline_post_squeeze - relax","2":"MHC","3":"2","4":"-0.182955412","5":"0.07961745","6":"2381.373","7":"-0.387639659","8":"0.021728835","_rn_":"36"},{"1":"baseline_pre_squeeze - squeeze","2":"ASD","3":"3","4":"-0.294759845","5":"0.06642717","6":"2352.850","7":"-0.465535365","8":"-0.123984325","_rn_":"37"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"ASD","3":"3","4":"0.246368146","5":"0.07302160","6":"2382.125","7":"0.058640870","8":"0.434095422","_rn_":"38"},{"1":"baseline_pre_squeeze - relax","2":"ASD","3":"3","4":"0.155040096","5":"0.06673084","6":"2355.479","7":"-0.016515966","8":"0.326596158","_rn_":"39"},{"1":"squeeze - baseline_post_squeeze","2":"ASD","3":"3","4":"0.541127991","5":"0.07000874","6":"2370.475","7":"0.361145693","8":"0.721110288","_rn_":"40"},{"1":"squeeze - relax","2":"ASD","3":"3","4":"0.449799941","5":"0.06341625","6":"2333.887","7":"0.286764159","8":"0.612835723","_rn_":"41"},{"1":"baseline_post_squeeze - relax","2":"ASD","3":"3","4":"-0.091328050","5":"0.07028942","6":"2368.537","7":"-0.272032057","8":"0.089375957","_rn_":"42"},{"1":"baseline_pre_squeeze - squeeze","2":"CON","3":"3","4":"-0.406550920","5":"0.06282761","6":"2338.056","7":"-0.568073159","8":"-0.245028680","_rn_":"43"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"CON","3":"3","4":"0.247844235","5":"0.07449007","6":"2390.241","7":"0.056342210","8":"0.439346260","_rn_":"44"},{"1":"baseline_pre_squeeze - relax","2":"CON","3":"3","4":"0.279359563","5":"0.06282761","6":"2338.056","7":"0.117837323","8":"0.440881803","_rn_":"45"},{"1":"squeeze - baseline_post_squeeze","2":"CON","3":"3","4":"0.654395154","5":"0.07371275","6":"2390.577","7":"0.464891502","8":"0.843898807","_rn_":"46"},{"1":"squeeze - relax","2":"CON","3":"3","4":"0.685910483","5":"0.06189614","6":"2331.570","7":"0.526782607","8":"0.845038358","_rn_":"47"},{"1":"baseline_post_squeeze - relax","2":"CON","3":"3","4":"0.031515328","5":"0.07371275","6":"2390.577","7":"-0.157988324","8":"0.221018981","_rn_":"48"},{"1":"baseline_pre_squeeze - squeeze","2":"MHC","3":"3","4":"-0.376612910","5":"0.07135655","6":"2342.879","7":"-0.560061758","8":"-0.193164062","_rn_":"49"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"MHC","3":"3","4":"0.261834118","5":"0.08030202","6":"2380.535","7":"0.055389901","8":"0.468278334","_rn_":"50"},{"1":"baseline_pre_squeeze - relax","2":"MHC","3":"3","4":"0.140643798","5":"0.07135655","6":"2342.879","7":"-0.042805051","8":"0.324092646","_rn_":"51"},{"1":"squeeze - baseline_post_squeeze","2":"MHC","3":"3","4":"0.638447027","5":"0.07869332","6":"2378.180","7":"0.436138392","8":"0.840755663","_rn_":"52"},{"1":"squeeze - relax","2":"MHC","3":"3","4":"0.517256707","5":"0.06953074","6":"2331.570","7":"0.338501149","8":"0.696012265","_rn_":"53"},{"1":"baseline_post_squeeze - relax","2":"MHC","3":"3","4":"-0.121190320","5":"0.07869332","6":"2378.180","7":"-0.323498955","8":"0.081118315","_rn_":"54"},{"1":"baseline_pre_squeeze - squeeze","2":"ASD","3":"4","4":"-0.233791612","5":"0.06558591","6":"2348.092","7":"-0.402404596","8":"-0.065178627","_rn_":"55"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"ASD","3":"4","4":"0.401884376","5":"0.07283625","6":"2373.850","7":"0.214633153","8":"0.589135600","_rn_":"56"},{"1":"baseline_pre_squeeze - relax","2":"ASD","3":"4","4":"0.252379573","5":"0.06558591","6":"2348.092","7":"0.083766589","8":"0.420992558","_rn_":"57"},{"1":"squeeze - baseline_post_squeeze","2":"ASD","3":"4","4":"0.635675988","5":"0.07062194","6":"2373.172","7":"0.454117372","8":"0.817234604","_rn_":"58"},{"1":"squeeze - relax","2":"ASD","3":"4","4":"0.486171185","5":"0.06309812","6":"2331.570","7":"0.323953160","8":"0.648389211","_rn_":"59"},{"1":"baseline_post_squeeze - relax","2":"ASD","3":"4","4":"-0.149504803","5":"0.07062194","6":"2373.172","7":"-0.331063419","8":"0.032053813","_rn_":"60"},{"1":"baseline_pre_squeeze - squeeze","2":"CON","3":"4","4":"-0.437502116","5":"0.06350462","6":"2342.769","7":"-0.600764636","8":"-0.274239595","_rn_":"61"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"CON","3":"4","4":"0.166297600","5":"0.07505010","6":"2386.865","7":"-0.026644370","8":"0.359239570","_rn_":"62"},{"1":"baseline_pre_squeeze - relax","2":"CON","3":"4","4":"0.174730059","5":"0.06379083","6":"2340.528","7":"0.010731612","8":"0.338728506","_rn_":"63"},{"1":"squeeze - baseline_post_squeeze","2":"CON","3":"4","4":"0.603799716","5":"0.07371273","6":"2390.532","7":"0.414296116","8":"0.793303317","_rn_":"64"},{"1":"squeeze - relax","2":"CON","3":"4","4":"0.612232175","5":"0.06219626","6":"2333.888","7":"0.452332847","8":"0.772131503","_rn_":"65"},{"1":"baseline_post_squeeze - relax","2":"CON","3":"4","4":"0.008432459","5":"0.07395945","6":"2388.897","7":"-0.181705517","8":"0.198570435","_rn_":"66"},{"1":"baseline_pre_squeeze - squeeze","2":"MHC","3":"4","4":"-0.283928778","5":"0.07186633","6":"2345.946","7":"-0.468688052","8":"-0.099169504","_rn_":"67"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"MHC","3":"4","4":"0.274127002","5":"0.07992583","6":"2385.895","7":"0.068650234","8":"0.479603771","_rn_":"68"},{"1":"baseline_pre_squeeze - relax","2":"MHC","3":"4","4":"0.235824757","5":"0.07228087","6":"2348.826","7":"0.049999916","8":"0.421649597","_rn_":"69"},{"1":"squeeze - baseline_post_squeeze","2":"MHC","3":"4","4":"0.558055780","5":"0.07782510","6":"2374.416","7":"0.357978988","8":"0.758132573","_rn_":"70"},{"1":"squeeze - relax","2":"MHC","3":"4","4":"0.519753535","5":"0.06995798","6":"2334.238","7":"0.339899755","8":"0.699607315","_rn_":"71"},{"1":"baseline_post_squeeze - relax","2":"MHC","3":"4","4":"-0.038302246","5":"0.07821081","6":"2377.635","7":"-0.239370441","8":"0.162765949","_rn_":"72"},{"1":"baseline_pre_squeeze - squeeze","2":"ASD","3":"5","4":"-0.107398121","5":"0.06588544","6":"2345.912","7":"-0.276781288","8":"0.061985045","_rn_":"73"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"ASD","3":"5","4":"0.319205782","5":"0.07346244","6":"2377.048","7":"0.130344889","8":"0.508066674","_rn_":"74"},{"1":"baseline_pre_squeeze - relax","2":"ASD","3":"5","4":"0.335671246","5":"0.06558590","6":"2348.054","7":"0.167058288","8":"0.504284203","_rn_":"75"},{"1":"squeeze - baseline_post_squeeze","2":"ASD","3":"5","4":"0.426603903","5":"0.07155170","6":"2378.807","7":"0.242655336","8":"0.610552470","_rn_":"76"},{"1":"squeeze - relax","2":"ASD","3":"5","4":"0.443069367","5":"0.06341624","6":"2333.845","7":"0.280033615","8":"0.606105119","_rn_":"77"},{"1":"baseline_post_squeeze - relax","2":"ASD","3":"5","4":"0.016465464","5":"0.07126657","6":"2375.916","7":"-0.166750242","8":"0.199681170","_rn_":"78"},{"1":"baseline_pre_squeeze - squeeze","2":"CON","3":"5","4":"-0.311301043","5":"0.06631637","6":"2359.370","7":"-0.481791378","8":"-0.140810709","_rn_":"79"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"CON","3":"5","4":"0.258395986","5":"0.07910875","6":"2395.590","7":"0.055020394","8":"0.461771579","_rn_":"80"},{"1":"baseline_pre_squeeze - relax","2":"CON","3":"5","4":"0.359538550","5":"0.06631637","6":"2359.370","7":"0.189048216","8":"0.530028885","_rn_":"81"},{"1":"squeeze - baseline_post_squeeze","2":"CON","3":"5","4":"0.569697030","5":"0.07546966","6":"2395.839","7":"0.375676963","8":"0.763717096","_rn_":"82"},{"1":"squeeze - relax","2":"CON","3":"5","4":"0.670839594","5":"0.06189614","6":"2331.570","7":"0.511711718","8":"0.829967469","_rn_":"83"},{"1":"baseline_post_squeeze - relax","2":"CON","3":"5","4":"0.101142564","5":"0.07546966","6":"2395.839","7":"-0.092877502","8":"0.295162630","_rn_":"84"},{"1":"baseline_pre_squeeze - squeeze","2":"MHC","3":"5","4":"-0.265868090","5":"0.07186621","6":"2345.642","7":"-0.450627068","8":"-0.081109112","_rn_":"85"},{"1":"baseline_pre_squeeze - baseline_post_squeeze","2":"MHC","3":"5","4":"0.266208025","5":"0.08865353","6":"2416.227","7":"0.038295734","8":"0.494120317","_rn_":"86"},{"1":"baseline_pre_squeeze - relax","2":"MHC","3":"5","4":"0.150047270","5":"0.07186621","6":"2345.642","7":"-0.034711707","8":"0.334806248","_rn_":"87"},{"1":"squeeze - baseline_post_squeeze","2":"MHC","3":"5","4":"0.532076115","5":"0.08674346","6":"2403.140","7":"0.309073429","8":"0.755078801","_rn_":"88"},{"1":"squeeze - relax","2":"MHC","3":"5","4":"0.415915360","5":"0.06953074","6":"2331.570","7":"0.237159802","8":"0.594670918","_rn_":"89"},{"1":"baseline_post_squeeze - relax","2":"MHC","3":"5","4":"-0.116160755","5":"0.08674346","6":"2403.140","7":"-0.339163441","8":"0.106841931","_rn_":"90"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
+95% CIs for Trial Phase Comparisons by Group × Manipulation Trial
 
 ``` r
 # Get estimated marginal means for the interaction
